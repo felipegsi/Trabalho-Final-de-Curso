@@ -1,0 +1,45 @@
+%!TEX root = ../template.tex
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% chapter1.tex
+%% NOVA thesis document file
+%%
+%% Chapter with introduction
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\typeout{NT FILE chapter1.tex}%
+
+\chapter{Introdução}
+\label{cha:introduction}
+
+\section{Teste}
+
+\subsection{Teste2}
+%\prependtographicspath{{Chapters/Figures/Covers/}}
+
+% epigraph configuration
+%\epigraphfontsize{\small\itshape}
+%\setlength\epigraphwidth{12.5cm}
+%\setlength\epigraphrule{0pt}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.1\linewidth]{NOVAthesisFiles/Images/novathesis-insignia}
+	\label{fig:1}
+	\caption{league of legends}
+\end{figure}
+
+\includegraphics[width=0.875\linewidth]{NOVAthesisFiles/Images/novathesis-text}
+
+
+REF->(\cite{novathesis-manual}) Este é uma maneira de citar
+
+\begin{figure}[htbp]
+	\centering
+	\subfloat[Model's Section~\ref{cha:introduction} trainning RMSE and Loss results.]{%
+		\includegraphics[width=.1\linewidth]{NOVAthesisFiles/Images/novathesis-insignia}}
+	\hfil
+	\subfloat[Model's Section~\ref{cha:introduction} trainning RMSE and Loss results.]{%
+		\includegraphics[width=.1\linewidth]{NOVAthesisFiles/Images/novathesis-insignia}}
+	\caption{RMSE and loss training results for trajectory model and phase-shift model with the static and dynamic group movement.}
+	\label{fig:models_results_lstms_loss} 
+\end{figure}
