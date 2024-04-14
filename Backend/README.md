@@ -2,9 +2,7 @@
 
 ## Introdução
 
-Este projeto tem como objetivo desenvolver uma plataforma digital inovadora para o transporte de mercadorias, inspirando-se no sucesso do modelo Uber. 
-O projeto esta dividido em duas partes: backend e frontend, sendo que o frontend é dividido em duas aplicações: cliente e motorista.
-Este sistema busca preencher uma lacuna significativa no mercado atual, fornecendo uma solução unificada que atenda às necessidades diversificadas de transporte de cargas, com especial atenção para diferentes volumes e requisitos específicos como reboques.
+Este projeto tem como objetivo desenvolver uma plataforma digital inovadora para o transporte de mercadorias, inspirando-se no sucesso do modelo Uber. Este sistema busca preencher uma lacuna significativa no mercado atual, fornecendo uma solução unificada que atenda às necessidades diversificadas de transporte de cargas, com especial atenção para diferentes volumes e requisitos específicos como reboques.
 
 ## Desenvolvedores
 
