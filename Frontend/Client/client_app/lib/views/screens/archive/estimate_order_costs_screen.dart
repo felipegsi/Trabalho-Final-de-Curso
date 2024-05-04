@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../enums/category.dart';
-import '../../services/network_service.dart';
-import '../../models/order.dart';
+import '../../../enums/category.dart';
+import '../../../services/network_service.dart';
+import '../../../models/order.dart';
 import 'package:decimal/decimal.dart';
 
 class EstimateOrderCostScreen extends StatefulWidget {
@@ -68,9 +68,9 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
 
         if (token != null) {
           try {
-            Decimal cost = await NetworkService().estimateOrderCost(order);
+          //  Decimal cost = await NetworkService().estimateOrderCost(order);
             setState(() {
-              _estimatedCost = cost.toString();
+            //  _estimatedCost = cost.toString();
               _isSubmitting = false;
             });
           } catch (e) {

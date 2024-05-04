@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../../models/order.dart';
-import '../../services/network_service.dart';
+import '../../../models/order.dart';
+import '../../../services/network_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderHistoryScreen extends StatefulWidget {
@@ -53,7 +53,7 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
                 Order order = orders[index];
                 return Card(
                   child: ListTile(
-                    title: Text(order.description),
+                    title: Text('Order'),
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

@@ -4,8 +4,8 @@ import 'package:decimal/decimal.dart';
 class Order {
   final String origin;
   final String destination;
-  final String description;
-  final String feedback;
+  final String? description;
+  final String? feedback;
   final String category; // Supondo que a categoria seja uma string
   final int width;
   final int height;
@@ -22,8 +22,8 @@ class Order {
   Order({
     required this.origin,
     required this.destination,
-    required this.description,
-    required this.feedback,
+    this.description,
+    this.feedback,
     required this.category,
     required this.width,
     required this.height,

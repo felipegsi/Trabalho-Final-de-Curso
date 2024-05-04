@@ -1,6 +1,7 @@
 package com.project.uber.controller;
 
 import com.project.uber.dtos.*;
+import com.project.uber.enums.Category;
 import com.project.uber.infra.exceptions.BusinessException;
 import com.project.uber.model.Order;
 import com.project.uber.service.implementation.EmailServiceImpl;
@@ -53,7 +54,7 @@ public class ClientController {
             return clientService.saveClient(clientDto);
         } catch (BusinessException e) {
             // If there's a business logic exception, it rethrows it with a custom message.
-            throw new BusinessException("Error registering client: " + e.getMessage());
+            throw new BusinessException("Client already exists!");
         }
     }
 
@@ -71,7 +72,7 @@ public class ClientController {
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
             // Handles authentication failures.
-            throw new BusinessException("Error authenticating client: " + e.getMessage());
+            throw new BusinessException("Invalid credentials.");
         }
     }
 
@@ -84,6 +85,16 @@ public class ClientController {
 
         ClientDto clientDto = clientService.viewProfile(clientId);
         return new ResponseEntity<>(clientDto, HttpStatus.OK);
+    }
+// verify if the token is valid
+    @GetMapping("/isValidToken")
+    public ResponseEntity<Boolean> isValidToken(@RequestHeader("Authorization") String token) {
+        try {
+            validateTokenAndGetClientId(token);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(false, HttpStatus.OK);
+        }
     }
 
     // This method allows clients to edit their profiles.
@@ -99,11 +110,11 @@ public class ClientController {
     }
 
     // This method estimates the cost of an order based on its details.
-    @PostMapping("/estimateOrderCost") // Handles POST requests to "/estimateOrderCost".
-    public ResponseEntity<BigDecimal> estimateOrderCost(@RequestBody OrderDto orderDto ,
+    @PostMapping("/estimateAllCategoryOrderCost") // Handles POST requests to "/estimateOrderCost".
+    public ResponseEntity<List<BigDecimal>> estimateAllCategoryOrderCost( @RequestBody LocationDto locationDto,
                                                         @RequestHeader("Authorization") String token) {
         try {
-            if (orderDto == null || orderDto.getOrigin() == null || orderDto.getDestination() == null) {
+            if (locationDto.getOrigin() == null || locationDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
             }
 
@@ -112,7 +123,7 @@ public class ClientController {
             }
 
             // Calculates the estimated cost of an order.
-            BigDecimal estimatedCost = orderService.estimateOrderCost(orderDto);
+            List<BigDecimal> estimatedCost = orderService.estimateAllCategoryOrderCost(locationDto.getOrigin(), locationDto.getDestination());
 
             return new ResponseEntity<>(estimatedCost, HttpStatus.OK);
         } catch (BusinessException e) {
@@ -121,6 +132,31 @@ public class ClientController {
         }
     }
 
+
+    @PostMapping("/estimateOrderCost") // Handles POST requests to "/estimateOrderCost".
+    public ResponseEntity<BigDecimal> estimateOrderCost(@RequestBody OrderDto orderDto ,
+                                                              @RequestHeader("Authorization") String token) {
+        try {
+            if (orderDto == null || orderDto.getOrigin() == null || orderDto.getDestination() == null) {
+                throw new BusinessException("Origin and destination are mandatory.");
+            }
+
+            if(validateTokenAndGetClientId(token) <= 0){
+                throw new BusinessException("Client not found.");
+            }
+           validateTokenAndGetClientId(token);
+
+            // Calculates the estimated cost of an order.
+
+            BigDecimal estimatedCost = orderService.estimateOrderCost(orderDto.getOrigin(), orderDto.getDestination(),
+                    orderDto.getCategory(), orderDto.getWidth(), orderDto.getHeight(), orderDto.getLength(), orderDto.getWeight());
+
+            return new ResponseEntity<>(estimatedCost, HttpStatus.OK);
+        } catch (BusinessException e) {
+            // Handles exceptions related to cost estimation.
+            throw new BusinessException("Error estimating order cost: " + e.getMessage());
+        }
+    }
     // This method creates a new order for a client.
     @PostMapping("/createOrder") // Handles POST requests to "/createOrder".
     public ResponseEntity<?> createOrder(@RequestBody OrderDto orderDto,
@@ -207,6 +243,8 @@ public class ClientController {
         emailService.sendSimpleMessage(emailDto);
         return ResponseEntity.ok().build();
     }
+
+
 
 
 

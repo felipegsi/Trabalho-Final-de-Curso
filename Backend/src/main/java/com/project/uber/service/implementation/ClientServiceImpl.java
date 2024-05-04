@@ -38,7 +38,7 @@ public class ClientServiceImpl implements ClientService {
                 clientDto.phoneNumber(), clientDto.taxPayerNumber(), clientDto.street(),
                 clientDto.city(), clientDto.postalCode()));
 
-        return new ClientDto(newClient.getName(), newClient.getEmail(), newClient.getPassword(),
+        return new ClientDto(newClient.getName(), newClient.getEmail(), newClient.getPassword(),//nao tirei a senha porque se a retira-se o cliente nao iaconseguir se registar pois um parametro de entrada é a senha
                 newClient.getPhoneNumber(), newClient.getTaxPayerNumber(), newClient.getStreet(),
                 newClient.getCity(), newClient.getPostalCode());
     }
@@ -54,6 +54,7 @@ public class ClientServiceImpl implements ClientService {
     public Client getClientById(Long clientId) {
         return clientRepository.findById(clientId).orElseThrow(() -> new BusinessException("Client not found"));
     }
+
 
     // This method is used to get a client by their email. If the client is not found, it throws a BusinessException.
     @Override

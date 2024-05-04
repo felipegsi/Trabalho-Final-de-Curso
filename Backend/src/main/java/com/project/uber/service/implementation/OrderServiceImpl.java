@@ -20,6 +20,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.math.MathContext;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Comparator;
@@ -43,90 +44,156 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private DriverRepository driverRepository;
 
-    // Method to estimate the cost of an order using an external API for routing.
+    // Saves an order based on the provided OrderDto and associated client ID.
     @Override
-    public BigDecimal estimateOrderCost(OrderDto orderDto) {
+    public List<BigDecimal> estimateAllCategoryOrderCost(String origin, String destination) throws BusinessException {
+        BigDecimal distanceInKm = fetchDistanceFromApi(origin, destination);
+
+        //devolve uma lista com o valor de cada categoria
+        return List.of(
+                distanceInKm.multiply(BigDecimal.valueOf(1.00)), // Small
+                distanceInKm.multiply(BigDecimal.valueOf(2.00)), // Medium
+                distanceInKm.multiply(BigDecimal.valueOf(3.00)), // Large
+                distanceInKm.multiply(BigDecimal.valueOf(5.00))); // Motorized
+    }
+
+
+    @Override
+    public BigDecimal estimateOrderCost(String origin, String destination, Category category,
+                                        int width, int height, int length, float weight) throws BusinessException {
+
+        verifyDimensionsAndWeight(category, width, height, length, weight); // Verifies if the dimensions and weight comply with the selected category.
+
+        BigDecimal distanceInKm = fetchDistanceFromApi(origin, destination);
+        return calculateOrderCostBasedOnCategory(category, width, height, length, weight, distanceInKm);
+    }
+
+    private void verifyDimensionsAndWeight(Category category,
+                                           int width, int height, int length, float weight) throws BusinessException {
+        boolean isValid = switch (category) {
+            case SMALL -> width <= OrderConstants.SMALL_WIDTH && height <= OrderConstants.SMALL_HEIGHT && length <= OrderConstants.SMALL_LENGTH && weight <= OrderConstants.SMALL_WEIGHT;
+            case MEDIUM -> width <= OrderConstants.MEDIUM_WIDTH && height <= OrderConstants.MEDIUM_HEIGHT && length <= OrderConstants.MEDIUM_LENGTH && weight <= OrderConstants.MEDIUM_WEIGHT;
+            case LARGE -> width <= OrderConstants.LARGE_WIDTH && height <= OrderConstants.LARGE_HEIGHT && length <= OrderConstants.LARGE_LENGTH && weight <= OrderConstants.LARGE_WEIGHT;
+            case MOTORIZED -> true; // Assuming no specific size limits for motorized or it's a special category without explicit limits.
+            default -> false;
+        };
+
+        if (!isValid) {
+            throw new BusinessException("Dimensions and weight do not comply with the selected category.");
+        }
+    }
+
+    /**
+     * Fetches the distance between two locations using an external API.
+     * @param origin The origin location.
+     * @param destination The destination location.
+     * @return The distance in kilometers as BigDecimal.
+     */
+    private BigDecimal fetchDistanceFromApi(String origin,String destination) throws BusinessException {
         OkHttpClient client = new OkHttpClient();
+        String[] originParts = origin.split(",");
+        String[] destinationParts = destination.split(",");
 
-        // Splits the origin and destination into latitude and longitude.
-        String[] originCoordinates = orderDto.getOrigin().split(",");
-        String[] destinationCoordinates = orderDto.getDestination().split(",");
+        String url = String.format(
+                "https://api.openrouteservice.org/v2/directions/driving-car?api_key=%s&start=%s,%s&end=%s,%s",
+                "5b3ce3597851110001cf6248b8fc3d76941643ee9de00a23820316b7", originParts[1], originParts[0], destinationParts[1], destinationParts[0]
+        );
 
-        // Builds the HTTP request for the routing API.
-        Request request = new Request.Builder()
-                .url("https://api.openrouteservice.org/v2/directions/driving-car?api_key=<API_KEY>&start="
-                        + originCoordinates[1] + "," + originCoordinates[0] + "&end=" + destinationCoordinates[1] + ","
-                        + destinationCoordinates[0])
-                .build();
-
+        Request request = new Request.Builder().url(url).build();
         try (Response response = client.newCall(request).execute()) {
-            String jsonData = response.body().string();
-            JSONObject jsonObject = new JSONObject(jsonData);
-            // Extracts the distance from the JSON response.
-            int distanceInMeters = jsonObject.getJSONArray("features")
+            JSONObject jsonResponse = new JSONObject(response.body().string());
+            int distanceInMeters = jsonResponse.getJSONArray("features")
                     .getJSONObject(0)
                     .getJSONObject("properties")
                     .getJSONArray("segments")
                     .getJSONObject(0)
                     .getInt("distance");
-
-            BigDecimal distanceInKm = new BigDecimal(distanceInMeters).divide(new BigDecimal(1000));
-
-            // Calls the method to calculate the final order cost based on distance and other dimensions.
-            return calculateOrderCostBasedOnDimensionsAndCategory(orderDto, distanceInKm);
-        } catch (BusinessException e) {
-            throw e; // Repropagates the BusinessException
+            return new BigDecimal(distanceInMeters).divide(BigDecimal.valueOf(1000));
         } catch (Exception e) {
-            throw new BusinessException("Failed to estimate order cost");
+            throw new BusinessException("Failed to fetch distance from API");
         }
     }
 
-    // Calculates the cost of an order based on its dimensions and category.
-    public BigDecimal calculateOrderCostBasedOnDimensionsAndCategory(OrderDto orderDto, BigDecimal distanceInKm) {
-        BigDecimal baseValue = BigDecimal.valueOf(1.00);
-        BigDecimal additionalValue = verifyMeasures(orderDto);
-
-        return baseValue.add(additionalValue).multiply(distanceInKm);
+    /**
+     * Calculates the cost of an order based on its category, dimensions, weight, and distance.
+     * @param category The category of the order.
+     * @param width The width of the order.
+     * @param height The height of the order.
+     * @param length The length of the order.
+     * @param weight The weight of the order.
+     * @param distanceInKm The distance between the origin and destination of the order.
+     * @return The calculated cost as BigDecimal.
+     */
+    private BigDecimal calculateOrderCostBasedOnCategory(Category category,
+                                                         int width, int height, int length, float weight, BigDecimal distanceInKm) {
+        BigDecimal baseRate = BigDecimal.ONE;
+        BigDecimal surcharge = getCategorySpecificSurcharge(category);
+        BigDecimal adjustmentFactor = calculateAdjustmentFactor(category, width, height, length, weight);
+        // Minor impact on the cost
+        return baseRate.add(surcharge).multiply(adjustmentFactor).multiply(distanceInKm);
     }
 
-    // Verifies that the order dimensions match the specified category and returns a category-specific surcharge.
-    public BigDecimal verifyMeasures(OrderDto orderDto) {
-        BigDecimal additionalValue = BigDecimal.ZERO;
+    /**
+     * Determines the additional cost based on the category of the order.
+     * @param category The category of the order.
+     * @return The surcharge for the specific category.
+     */
+    private BigDecimal getCategorySpecificSurcharge(Category category) {
+        switch (category) {
+            case SMALL: return BigDecimal.valueOf(1.00);
+            case MEDIUM: return BigDecimal.valueOf(2.00);
+            case LARGE: return BigDecimal.valueOf(3.00);
+            case MOTORIZED: return BigDecimal.valueOf(20.00);
+            default: throw new IllegalArgumentException("Invalid order category");
+        }
+    }
 
-        switch (orderDto.getCategory()) {
+    private BigDecimal calculateAdjustmentFactor(Category category, int width, int height, int length, float weight) {
+
+
+        BigDecimal sizeFactor = BigDecimal.ONE;
+        BigDecimal weightFactor = BigDecimal.ONE;
+
+        switch (category) {
             case SMALL:
-                if (orderDto.getWidth() <= OrderConstants.SMALL_WIDTH && orderDto.getHeight() <= OrderConstants.SMALL_HEIGHT
-                        && orderDto.getLength() <= OrderConstants.SMALL_LENGTH && orderDto.getWeight() <= OrderConstants.SMALL_WEIGHT) {
-                    additionalValue = BigDecimal.valueOf(1.00);
-                } else {
-                    throw new BusinessException("Order dimensions do not match the SMALL category. Please check the dimensions and weight.");
-                }
+                sizeFactor = calculateSizeFactor(width, height, length,
+                        OrderConstants.SMALL_WIDTH, OrderConstants.SMALL_HEIGHT, OrderConstants.SMALL_LENGTH);
+                weightFactor = calculateWeightFactor(weight, OrderConstants.SMALL_WEIGHT);
                 break;
             case MEDIUM:
-                if (orderDto.getWidth() <= OrderConstants.MEDIUM_WIDTH && orderDto.getHeight() <= OrderConstants.MEDIUM_HEIGHT
-                        && orderDto.getLength() <= OrderConstants.MEDIUM_LENGTH && orderDto.getWeight() <= OrderConstants.MEDIUM_WEIGHT) {
-                    additionalValue = BigDecimal.valueOf(2.00);
-                } else {
-                    throw new BusinessException("Order dimensions do not match the MEDIUM category. Please check the dimensions and weight.");
-                }
+                sizeFactor = calculateSizeFactor(width, height, length,
+                        OrderConstants.MEDIUM_WIDTH, OrderConstants.MEDIUM_HEIGHT, OrderConstants.MEDIUM_LENGTH);
+                weightFactor = calculateWeightFactor(weight, OrderConstants.MEDIUM_WEIGHT);
                 break;
             case LARGE:
-                if (orderDto.getWidth() <= OrderConstants.LARGE_WIDTH && orderDto.getHeight() <= OrderConstants.LARGE_HEIGHT
-                        && orderDto.getLength() <= OrderConstants.LARGE_LENGTH && orderDto.getWeight() <= OrderConstants.LARGE_WEIGHT) {
-                    additionalValue = BigDecimal.valueOf(3.00);
-                } else {
-                    throw new BusinessException("Order dimensions do not match the LARGE category. Please check the dimensions and weight.");
-                }
+                sizeFactor = calculateSizeFactor(width, height, length,
+                        OrderConstants.LARGE_WIDTH, OrderConstants.LARGE_HEIGHT, OrderConstants.LARGE_LENGTH);
+                weightFactor = calculateWeightFactor(weight, OrderConstants.LARGE_WEIGHT);
                 break;
             case MOTORIZED:
-                additionalValue = BigDecimal.valueOf(20.00);
+                sizeFactor = BigDecimal.ONE; // Assuming no adjustment for motorized category
+                weightFactor = BigDecimal.ONE; //mudar dps
                 break;
-            default:
-                throw new BusinessException("Invalid category. Please check the category of the order.");
         }
 
-        return additionalValue;
+        BigDecimal combinedFactor = sizeFactor.multiply(weightFactor);
+        double rootValue = Math.pow(combinedFactor.doubleValue(), 0.15); // Apply the 10th root
+        return new BigDecimal(rootValue, MathContext.DECIMAL64); // Convert back to BigDecimal
     }
+
+    private BigDecimal calculateSizeFactor(int width, int height, int length, int maxWidth, int maxHeight, int maxLength) {
+        double volume = width * height * length;
+        double maxVolume = maxWidth * maxHeight * maxLength;
+        double ratio = volume / maxVolume;
+        return BigDecimal.valueOf(Math.pow(ratio, 0.1)); // Mild adjustment using the 10th root
+    }
+
+    private BigDecimal calculateWeightFactor(float weight, float maxWeight) {
+        double ratio = weight / maxWeight;
+        return BigDecimal.valueOf(Math.pow(ratio, 0.15)); // Mild adjustment using the 10th root
+    }
+
+
 
     // Creates and assigns an order to a driver, starting with verifying client existence.
     @Override
@@ -138,8 +205,10 @@ public class OrderServiceImpl implements OrderService {
             throw new BusinessException("Client not found.");
         }
 
-        // Estimates the cost of the order.
-        BigDecimal estimatedCost = estimateOrderCost(orderDto);
+
+        BigDecimal estimatedCost = estimateOrderCost(orderDto.getOrigin(),orderDto.getDestination(),
+                orderDto.getCategory(), orderDto.getWidth(), orderDto.getHeight(), orderDto.getLength(),
+                orderDto.getWeight());
 
         // Creates a new Order instance with provided details and the estimated cost.
         Order newOrder = new Order();
@@ -228,7 +297,10 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public Order saveOrder(OrderDto orderDto, Long clientId) {
         // Estimates the order cost and stores the result in the OrderDto variable.
-        BigDecimal value = estimateOrderCost(orderDto);
+
+        BigDecimal value = estimateOrderCost(orderDto.getOrigin(),orderDto.getDestination(),
+                orderDto.getCategory(), orderDto.getWidth(), orderDto.getHeight(), orderDto.getLength(),
+                orderDto.getWeight());
         OrderStatus status = OrderStatus.PENDING; // Initial status for new orders.
         Client client = clientService.getClientById(clientId); // Retrieves the client based on the provided client ID.
 

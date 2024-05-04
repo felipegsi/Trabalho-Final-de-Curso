@@ -7,15 +7,15 @@ import 'package:latlong2/latlong.dart';
 import 'package:open_route_service/open_route_service.dart';
 
 // Declaração da classe do widget MapScreen, que é um StatefulWidget, permitindo atualizações de estado.
-class MapScreen extends StatefulWidget {
-  const MapScreen({super.key});
+class Copy extends StatefulWidget {
+  const Copy({super.key});
 
   @override
-  State<MapScreen> createState() => _MapScreenState();
+  State<Copy> createState() => _Copy();
 }
 
 // Estado associado ao MapScreen. Mantém os dados necessários e a lógica para o funcionamento do mapa.
-class _MapScreenState extends State<MapScreen> {
+class _Copy extends State<Copy> {
   // Ponto inicial no mapa, utilizado para centrar o mapa na inicialização.
   late LatLng myPoint;
   // Controle de estado para mostrar ou ocultar a animação de carregamento.
@@ -174,7 +174,7 @@ class _MapScreenState extends State<MapScreen> {
               child: TextButton(
                 onPressed: () {
                   if (markers.isEmpty) {
-                    print('Marcar pontos no mapa');
+                    print('Mark points in map');
                   } else {
                     setState(() {
                       markers = [];
@@ -188,7 +188,7 @@ class _MapScreenState extends State<MapScreen> {
                   decoration: BoxDecoration(color: Colors.black, borderRadius: BorderRadius.circular(10)),
                   child: Center(
                     child: Text(
-                      markers.isEmpty ? "Marcar rota no mapa" : "Limpar rota",
+                      markers.isEmpty ? "Mark route in map" : "Clean route",
                       style: const TextStyle(color: Colors.white, fontSize: 18),
                     ),
                   ),

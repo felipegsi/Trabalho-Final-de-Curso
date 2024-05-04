@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:teste_2/views/screens/main_screen.dart';
-import '../../services/network_service.dart';
-import '../../widgets/custom_button.dart';
-import 'profile_screen.dart';
+import 'package:teste_2/views/screens/archive/main_screen.dart';
+import '../../../services/network_service.dart';
+import '../../../widgets/custom_button.dart';
+import '../profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
 
-class LoginScreen extends StatefulWidget {
+class OldLoginScreen extends StatefulWidget {
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _OldLoginScreenState createState() => _OldLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _OldLoginScreenState extends State<OldLoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
