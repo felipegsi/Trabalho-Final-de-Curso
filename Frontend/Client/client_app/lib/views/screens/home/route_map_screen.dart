@@ -13,11 +13,12 @@ import '../../../services/network_service.dart';
 class RouteMapScreen extends StatefulWidget {
   final LatLng origin; // Coordenada de origem para a rota.
   final LatLng destination; // Coordenada de destino para a rota.
+  final String categoryType;
+  final Map<String, dynamic> attributes; // Adiciona um mapa para atributos variáveis baseados na categoria
 
   // Construtor da classe com as coordenadas de origem e destino necessárias.
-  const RouteMapScreen(
-      {Key? key, required this.origin, required this.destination})
-      : super(key: key);
+  const RouteMapScreen({Key? key, required this.origin, required this.destination,
+    required this.categoryType, required this.attributes}) : super(key: key);
 
   @override
   _RouteMapScreenState createState() => _RouteMapScreenState();

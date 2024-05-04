@@ -72,6 +72,9 @@ flutter pub get
 # Inicie a aplicação frontend
 flutter run
 ```
+# Repositorios auxiliares
+- https://github.com/felipegsi/BackendUberDeMercadoriasTFC
+- https://github.com/felipegsi/FrontendUberDeMercadoriasTFC
 
 # Contribuições
 Contribuições são bem-vindas!

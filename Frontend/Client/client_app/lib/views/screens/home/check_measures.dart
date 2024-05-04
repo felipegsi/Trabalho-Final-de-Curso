@@ -12,11 +12,15 @@ class CheckMeasures extends StatefulWidget {
 }
 
 class _CheckMeasuresState extends State<CheckMeasures> {
-  final TextEditingController _weightController = TextEditingController();
-  final TextEditingController _lengthController = TextEditingController();
-  final TextEditingController _heightController = TextEditingController();
-  final TextEditingController _widthController = TextEditingController();
-  final TextEditingController _descriptionController = TextEditingController();
+  TextEditingController _plateController = TextEditingController();
+  TextEditingController _modelController = TextEditingController();
+  TextEditingController _brandController = TextEditingController();
+  TextEditingController _weightController = TextEditingController();
+  TextEditingController _lengthController = TextEditingController();
+  TextEditingController _heightController = TextEditingController();
+  TextEditingController _widthController = TextEditingController();
+  TextEditingController _descriptionController = TextEditingController();
+
   String _categoryType = 'Small';
 
   final _formKey = GlobalKey<FormState>(); // Key for form validation
@@ -25,6 +29,7 @@ class _CheckMeasuresState extends State<CheckMeasures> {
     'Small': {'width': 60, 'height': 60, 'length': 60, 'weight': 10},
     'Medium': {'width': 120, 'height': 120, 'length': 120, 'weight': 50},
     'Large': {'width': 200, 'height': 200, 'length': 200, 'weight': 100},
+    'Motorized': {}, // Assuming no numeric limits for Motorized category
   };
 
   @override
@@ -45,13 +50,7 @@ class _CheckMeasuresState extends State<CheckMeasures> {
             children: <Widget>[
               _buildDropdown(),
               SizedBox(height: 20),
-              _buildTextField(_weightController, 'Weight (kg)', Icons.monitor_weight, 'weight'),
-              SizedBox(height: 20),
-              _buildTextField(_lengthController, 'Length (cm)', Icons.straighten, 'length'),
-              SizedBox(height: 20),
-              _buildTextField(_heightController, 'Height (cm)', Icons.height, 'height'),
-              SizedBox(height: 20),
-              _buildTextField(_widthController, 'Width (cm)', Icons.aspect_ratio, 'width'),
+              ..._buildDynamicFields(),
               SizedBox(height: 20),
               _buildTextField(_descriptionController, 'Description', Icons.description_outlined, null),
               SizedBox(height: 40),
@@ -78,7 +77,7 @@ class _CheckMeasuresState extends State<CheckMeasures> {
                   style: ElevatedButton.styleFrom(
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.deepPurple,
-                    padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+                    padding: EdgeInsets.symmetric(horizontal: 50, vertical :20),
                   ),
                 ),
               ),
@@ -87,6 +86,36 @@ class _CheckMeasuresState extends State<CheckMeasures> {
         ),
       ),
     );
+  }
+
+  List<Widget> _buildDynamicFields() {
+    List<Widget> fields = [];
+    List<Map<String, dynamic>> fieldConfigs = [
+      {'controller': _weightController, 'label': 'Weight (kg)', 'icon': Icons.monitor_weight, 'measure': 'weight'},
+      {'controller': _lengthController, 'label': 'Length (cm)', 'icon': Icons.straighten, 'measure': 'length'},
+      {'controller': _heightController, 'label': 'Height (cm)', 'icon': Icons.height, 'measure': 'height'},
+      {'controller': _widthController, 'label': 'Width (cm)', 'icon': Icons.aspect_ratio, 'measure': 'width'}
+    ];
+
+    if (_categoryType == 'Motorized') {
+      fieldConfigs = [
+        {'controller': _plateController, 'label': 'Plate', 'icon': Icons.directions_car},
+        {'controller': _modelController, 'label': 'Model', 'icon': Icons.build_circle},
+        {'controller': _brandController, 'label': 'Brand', 'icon': Icons.business}
+      ];
+    }
+
+    for (var config in fieldConfigs) {
+      fields.add(_buildTextField(
+          config['controller'],
+          config['label'],
+          config['icon'],
+          config['measure']
+      ));
+      fields.add(SizedBox(height: 20));
+    }
+
+    return fields;
   }
 
   Widget _buildTextField(TextEditingController controller, String label, IconData icon, String? measure) {
@@ -100,14 +129,16 @@ class _CheckMeasuresState extends State<CheckMeasures> {
           borderSide: BorderSide(color: Colors.deepPurpleAccent, width: 2.0),
         ),
       ),
-      keyboardType: TextInputType.number,
+      keyboardType: measure != null ? TextInputType.number : TextInputType.text,
       validator: (value) {
         if (value == null || value.isEmpty) {
           return 'Please enter $label';
         }
-        if (measure != null) {
+        if (measure != null && categoryLimits[_categoryType]!.containsKey(measure)) {
           final numValue = double.tryParse(value);
-          if (numValue == null) return 'Please enter a valid number for $label';
+          if (numValue == null) {
+            return 'Please enter a valid number for $label';
+          }
           if (numValue > categoryLimits[_categoryType]![measure]!) {
             return 'Max $measure for $_categoryType is ${categoryLimits[_categoryType]![measure]}';
           }
@@ -120,7 +151,7 @@ class _CheckMeasuresState extends State<CheckMeasures> {
   Widget _buildDropdown() {
     return DropdownButtonFormField(
       value: _categoryType,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Category Type',
         border: OutlineInputBorder(),
         focusedBorder: OutlineInputBorder(
@@ -132,7 +163,7 @@ class _CheckMeasuresState extends State<CheckMeasures> {
           _categoryType = newValue!;
         });
       },
-      items: <String>['Small', 'Medium', 'Large']
+      items: <String>['Small', 'Medium', 'Large', 'Motorized']
           .map<DropdownMenuItem<String>>((String value) {
         return DropdownMenuItem<String>(
           value: value,
@@ -148,3 +179,4 @@ class _CheckMeasuresState extends State<CheckMeasures> {
     );
   }
 }
+
