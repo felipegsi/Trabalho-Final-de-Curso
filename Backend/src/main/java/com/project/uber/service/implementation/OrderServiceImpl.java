@@ -89,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
      * @param destination The destination location.
      * @return The distance in kilometers as BigDecimal.
      */
-    private BigDecimal fetchDistanceFromApi(String origin,String destination) throws BusinessException {
+    private BigDecimal fetchDistanceFromApi(String origin, String destination) throws BusinessException {
         OkHttpClient client = new OkHttpClient();
         String[] originParts = origin.split(",");
         String[] destinationParts = destination.split(",");
@@ -108,8 +108,12 @@ public class OrderServiceImpl implements OrderService {
                     .getJSONArray("segments")
                     .getJSONObject(0)
                     .getInt("distance");
-            return new BigDecimal(distanceInMeters).divide(BigDecimal.valueOf(1000));
+            BigDecimal distanceInKm = new BigDecimal(distanceInMeters).divide(BigDecimal.valueOf(1000), MathContext.DECIMAL64);
+
+            System.out.println("Fetched distance: " + distanceInKm + " km"); // Log the fetched distance
+            return distanceInKm;
         } catch (Exception e) {
+            System.out.println("Failed to fetch distance: " + e.getMessage()); // Log failure
             throw new BusinessException("Failed to fetch distance from API");
         }
     }

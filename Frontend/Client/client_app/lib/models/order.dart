@@ -6,15 +6,19 @@ class Order {
   final String destination;
   final String? description;
   final String? feedback;
+
   final String category; // Supondo que a categoria seja uma string
-  final int width;
-  final int height;
-  final int length;
-  final double weight;
+  // fields to non-motorized category
+  final int? width;
+  final int? height;
+  final int? length;
+  final double? weight;
+  // fields to motorized category
+  final String? plate;
+  final String? model;
+  final String? brand;
 
   final Decimal? value; // Supondo que o valor seja um BigDecimal
-
-
   final String? status; // Adicionei um status para o pedido
   final DateTime? data; // Adicionei a data combinada com o time
 
@@ -25,10 +29,13 @@ class Order {
     this.description,
     this.feedback,
     required this.category,
-    required this.width,
-    required this.height,
-    required this.length,
-    required this.weight,
+    this.width,
+    this.height,
+    this.length,
+    this.weight,
+    this.plate,
+    this.model,
+    this.brand,
     this.value,
     this.status,
     this.data,

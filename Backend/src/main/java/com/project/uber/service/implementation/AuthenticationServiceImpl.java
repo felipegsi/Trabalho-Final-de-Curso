@@ -109,7 +109,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     // This method generates an expiration date for the JWT token. The token will expire 8 hours from the current time.
     private Instant generateExpirationDate() {
         return LocalDateTime.now()
-                .plusHours(8)
+                .plusHours(1)//8
                 .toInstant(ZoneOffset.of("-03:00"));
     }
 

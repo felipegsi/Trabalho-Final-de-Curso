@@ -83,13 +83,35 @@ class NetworkService {
   Future<void> logout() async {
     await storage.delete(key: 'token');
   }
-
+  void showExpiredSessionDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false, // O usuário não pode fechar o diálogo tocando fora dele
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: Text('Sessão Expirada'),
+          content: Text('Sua sessão expirou. Por favor, faça login novamente.'),
+          actions: <Widget>[
+            TextButton(
+              child: Text('Entendido'),
+              onPressed: () {
+                // Fecha o diálogo
+                Navigator.of(dialogContext).pop();
+                // Redireciona para a página de login
+                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
   Future<Client?> viewProfile(BuildContext context) async {
     // Recupera o token do FlutterSecureStorage
     String? token = await storage.read(key: 'token');
+    // Se o token for nulo, exibe um diálogo de sessão expirada e retorna nulo
     if (token == null) {
-      print('No token found');
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+      showExpiredSessionDialog(context);
       return null;
     }
 
@@ -155,12 +177,39 @@ class NetworkService {
       throw Exception('Failed to estimate order cost: ${response.body}');
     }
   }
+  Future<Order?> createOrder(Order order, BuildContext context) async {
+    String? token = await storage.read(key: 'token');
+    // Se o token for nulo, exibe um diálogo de sessão expirada e retorna nulo
+    if (token == null) {
+      showExpiredSessionDialog(context);
+      return null;
+    }
 
-  Future<Decimal> estimateOrderCost(Order order) async {
+    final url = Uri.parse('$baseUrl/createOrder');
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode(order.toJson()),
+    );
+
+    if (response.statusCode == 200) {
+      return Order.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to create order: ${response.body}');
+    }
+  }
+
+  Future<Decimal> estimateOrderCost(Order order, BuildContext context) async {
     // Recupera o token do armazenamento seguro
     String? token = await storage.read(key: 'token');
+
+    // Se o token for nulo, exibe um diálogo de sessão expirada e retorna nulo
     if (token == null) {
-      throw Exception('No token found');
+      showExpiredSessionDialog(context);
+      return Decimal.zero;
     }
 
     // Cria a URL para a rota de estimativa de custo do pedido
@@ -168,7 +217,7 @@ class NetworkService {
 
     // Converte o objeto Order para um mapa e depois para uma string JSON
     String orderJson = jsonEncode(order.toJson());
-
+    print('Order JSON: $orderJson');
     // Envia uma requisição POST para a URL com o objeto Order no corpo da requisição e o token no cabeçalho de autorização
     final response = await http.post(
       url,
