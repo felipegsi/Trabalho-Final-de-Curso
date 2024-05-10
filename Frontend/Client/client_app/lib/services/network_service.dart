@@ -98,7 +98,8 @@ class NetworkService {
                 // Fecha o diálogo
                 Navigator.of(dialogContext).pop();
                 // Redireciona para a página de login
-                Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+                Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (_) => LoginScreen()));
               },
             ),
           ],
@@ -109,6 +110,7 @@ class NetworkService {
   Future<Client?> viewProfile(BuildContext context) async {
     // Recupera o token do FlutterSecureStorage
     String? token = await storage.read(key: 'token');
+
     // Se o token for nulo, exibe um diálogo de sessão expirada e retorna nulo
     if (token == null) {
       showExpiredSessionDialog(context);
@@ -184,6 +186,10 @@ class NetworkService {
       showExpiredSessionDialog(context);
       return null;
     }
+    // Converte o objeto Order para um mapa e depois para uma string JSON
+    String orderJson = jsonEncode(order.toJson());
+
+    print('Order JSON(createOrder): $orderJson');
 
     final url = Uri.parse('$baseUrl/createOrder');
     final response = await http.post(
@@ -195,7 +201,7 @@ class NetworkService {
       body: jsonEncode(order.toJson()),
     );
 
-    if (response.statusCode == 200) {
+    if (response.statusCode == 201) {
       return Order.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to create order: ${response.body}');
@@ -217,7 +223,7 @@ class NetworkService {
 
     // Converte o objeto Order para um mapa e depois para uma string JSON
     String orderJson = jsonEncode(order.toJson());
-    print('Order JSON: $orderJson');
+
     // Envia uma requisição POST para a URL com o objeto Order no corpo da requisição e o token no cabeçalho de autorização
     final response = await http.post(
       url,

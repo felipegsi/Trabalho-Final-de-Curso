@@ -240,6 +240,17 @@ public class DriverController {
         return new ResponseEntity<>(HttpStatus.OK); // Returns an OK status upon successful password change.
     }
 
+    //    public Driver assignOrderToDriver(Long orderId) criar um endpoint para atribuir uma ordem a um motorista
+    @PostMapping("/assignOrderToDriver")
+    public ResponseEntity<?> assignOrderToDriver(@RequestBody OrderDto orderDto) {
+        try {
+            Driver driver = orderService.assignOrderToDriver(orderDto.getId());
+            return new ResponseEntity<>(driver, HttpStatus.OK);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        }
+    }
+
 
     // This private method validates the JWT token and extracts the driver ID from it.
     private Long validateTokenAndGetDriverId(String token) {

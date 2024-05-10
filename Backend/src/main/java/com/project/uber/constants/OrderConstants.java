@@ -15,4 +15,6 @@ public class OrderConstants {
     public static final int LARGE_HEIGHT = 150;
     public static final int LARGE_LENGTH = 150;
     public static final float LARGE_WEIGHT = 90;
+
+    public static final int MAX_DRIVER_DISTANCE = 10;
 }

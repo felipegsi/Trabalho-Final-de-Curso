@@ -68,13 +68,14 @@ class Order {
       description: json['description'],
       feedback: json['feedback'],
       category: json['category'],
-      width: json['width'],
-      height: json['height'],
-      length: json['length'],
-      weight: (json['weight'] as num).toDouble(), // Garante que seja um double
-      value: Decimal.parse(json['value'].toString()), // Converte para Decimal
+      width: json['width'] as int?,
+      height: json['height'] as int?,
+      length: json['length'] as int?,
+      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+      value: json['value'] != null ? Decimal.parse(json['value'].toString()) : null,
       status: json['status'],
-      data: DateTime.parse(json['data']),
+      data: json['data'] != null ? DateTime.parse(json['data']) : null,
     );
   }
+
 }

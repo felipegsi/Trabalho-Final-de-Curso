@@ -13,7 +13,7 @@ import java.util.Optional;
 public interface DriverRepository extends JpaRepository<Driver, Long> {
     Driver findByEmail(String email);
     Optional<Driver> findByName(String name);
-    @Query("SELECT d FROM Driver d WHERE d.isOnline = true")
+    @Query("SELECT d FROM Driver d WHERE d.isOnline = true AND d.isBusy = false") // Query to find available drivers
     List<Driver> findAvailableDrivers();
 
 }

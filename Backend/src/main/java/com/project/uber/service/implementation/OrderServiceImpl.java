@@ -46,6 +46,24 @@ public class OrderServiceImpl implements OrderService {
 
     // Saves an order based on the provided OrderDto and associated client ID.
     @Override
+    public Order saveOrder(OrderDto orderDto, Long clientId) {
+        // Estimates the order cost and stores the result in the OrderDto variable.
+
+        BigDecimal value = estimateOrderCost(orderDto.getOrigin(), orderDto.getDestination(),
+                orderDto.getCategory(), orderDto.getWidth(), orderDto.getHeight(), orderDto.getLength(),
+                orderDto.getWeight());
+        OrderStatus status = OrderStatus.PENDING; // Initial status for new orders.
+        Client client = clientService.getClientById(clientId); // Retrieves the client based on the provided client ID.
+
+        // Creates a new order with the calculated details and saves it to the repository.
+        Order order = new Order(orderDto.getOrigin(), orderDto.getDestination(), value, status, LocalDate.now(), LocalTime.now(),
+                orderDto.getDescription(), orderDto.getFeedback(), client, orderDto.getCategory());
+
+        return orderRepository.save(order); // Persists the order and returns the saved instance.
+    }
+
+    // Saves an order based on the provided OrderDto and associated client ID.
+    @Override
     public List<BigDecimal> estimateAllCategoryOrderCost(String origin, String destination) throws BusinessException {
         BigDecimal distanceInKm = fetchDistanceFromApi(origin, destination);
 
@@ -56,7 +74,6 @@ public class OrderServiceImpl implements OrderService {
                 distanceInKm.multiply(BigDecimal.valueOf(3.00)), // Large
                 distanceInKm.multiply(BigDecimal.valueOf(5.00))); // Motorized
     }
-
 
     @Override
     public BigDecimal estimateOrderCost(String origin, String destination, Category category,
@@ -71,10 +88,14 @@ public class OrderServiceImpl implements OrderService {
     private void verifyDimensionsAndWeight(Category category,
                                            int width, int height, int length, float weight) throws BusinessException {
         boolean isValid = switch (category) {
-            case SMALL -> width <= OrderConstants.SMALL_WIDTH && height <= OrderConstants.SMALL_HEIGHT && length <= OrderConstants.SMALL_LENGTH && weight <= OrderConstants.SMALL_WEIGHT;
-            case MEDIUM -> width <= OrderConstants.MEDIUM_WIDTH && height <= OrderConstants.MEDIUM_HEIGHT && length <= OrderConstants.MEDIUM_LENGTH && weight <= OrderConstants.MEDIUM_WEIGHT;
-            case LARGE -> width <= OrderConstants.LARGE_WIDTH && height <= OrderConstants.LARGE_HEIGHT && length <= OrderConstants.LARGE_LENGTH && weight <= OrderConstants.LARGE_WEIGHT;
-            case MOTORIZED -> true; // Assuming no specific size limits for motorized or it's a special category without explicit limits.
+            case SMALL ->
+                    width <= OrderConstants.SMALL_WIDTH && height <= OrderConstants.SMALL_HEIGHT && length <= OrderConstants.SMALL_LENGTH && weight <= OrderConstants.SMALL_WEIGHT;
+            case MEDIUM ->
+                    width <= OrderConstants.MEDIUM_WIDTH && height <= OrderConstants.MEDIUM_HEIGHT && length <= OrderConstants.MEDIUM_LENGTH && weight <= OrderConstants.MEDIUM_WEIGHT;
+            case LARGE ->
+                    width <= OrderConstants.LARGE_WIDTH && height <= OrderConstants.LARGE_HEIGHT && length <= OrderConstants.LARGE_LENGTH && weight <= OrderConstants.LARGE_WEIGHT;
+            case MOTORIZED ->
+                    true; // Assuming no specific size limits for motorized or it's a special category without explicit limits.
             default -> false;
         };
 
@@ -85,7 +106,8 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * Fetches the distance between two locations using an external API.
-     * @param origin The origin location.
+     *
+     * @param origin      The origin location.
      * @param destination The destination location.
      * @return The distance in kilometers as BigDecimal.
      */
@@ -120,11 +142,12 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * Calculates the cost of an order based on its category, dimensions, weight, and distance.
-     * @param category The category of the order.
-     * @param width The width of the order.
-     * @param height The height of the order.
-     * @param length The length of the order.
-     * @param weight The weight of the order.
+     *
+     * @param category     The category of the order.
+     * @param width        The width of the order.
+     * @param height       The height of the order.
+     * @param length       The length of the order.
+     * @param weight       The weight of the order.
      * @param distanceInKm The distance between the origin and destination of the order.
      * @return The calculated cost as BigDecimal.
      */
@@ -139,16 +162,22 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * Determines the additional cost based on the category of the order.
+     *
      * @param category The category of the order.
      * @return The surcharge for the specific category.
      */
     private BigDecimal getCategorySpecificSurcharge(Category category) {
         switch (category) {
-            case SMALL: return BigDecimal.valueOf(1.00);
-            case MEDIUM: return BigDecimal.valueOf(2.00);
-            case LARGE: return BigDecimal.valueOf(3.00);
-            case MOTORIZED: return BigDecimal.valueOf(20.00);
-            default: throw new IllegalArgumentException("Invalid order category");
+            case SMALL:
+                return BigDecimal.valueOf(1.00);
+            case MEDIUM:
+                return BigDecimal.valueOf(2.00);
+            case LARGE:
+                return BigDecimal.valueOf(3.00);
+            case MOTORIZED:
+                return BigDecimal.valueOf(20.00);
+            default:
+                throw new IllegalArgumentException("Invalid order category");
         }
     }
 
@@ -197,82 +226,49 @@ public class OrderServiceImpl implements OrderService {
         return BigDecimal.valueOf(Math.pow(ratio, 0.15)); // Mild adjustment using the 10th root
     }
 
-
-
-    // Creates and assigns an order to a driver, starting with verifying client existence.
-    @Override
-    @Transactional // Ensures that the operation is performed atomically.
-    public OrderDto createAndAssignOrder(OrderDto orderDto, Long clientId) throws BusinessException {
-        // Verifies the existence of the client.
-        Client client = clientService.getClientById(clientId);
-        if (client == null) {
-            throw new BusinessException("Client not found.");
-        }
-
-
-        BigDecimal estimatedCost = estimateOrderCost(orderDto.getOrigin(),orderDto.getDestination(),
-                orderDto.getCategory(), orderDto.getWidth(), orderDto.getHeight(), orderDto.getLength(),
-                orderDto.getWeight());
-
-        // Creates a new Order instance with provided details and the estimated cost.
-        Order newOrder = new Order();
-        newOrder.setOrigin(orderDto.getOrigin());
-        newOrder.setDestination(orderDto.getDestination());
-        newOrder.setDescription(orderDto.getDescription());
-        newOrder.setFeedback(orderDto.getFeedback());
-        newOrder.setCategory(orderDto.getCategory());
-        newOrder.setClient(client);
-        newOrder.setValue(estimatedCost);
-        newOrder.setStatus(OrderStatus.PENDING); // Starts with the status PENDING.
-
-        // Saves the order to ensure it has an ID before assigning a driver.
-        newOrder = orderRepository.save(newOrder);
-
-        // Attempts to assign a driver to the order.
-        try {
-            assignDriverToOrder(newOrder.getId());
-            newOrder.setStatus(OrderStatus.IN_PROGRESS); // Changes the status to IN_PROGRESS once a driver has been assigned.
-            orderRepository.save(newOrder); // Updates the order with the new status.
-        } catch (BusinessException e) {
-            throw new BusinessException("Failed to assign driver: " + e.getMessage());
-        }
-
-        // Converts the new order into OrderDto and returns it.
-        return convertToOrderDto(newOrder);
-    }
-
     // Assigns a driver to an order based on the order's pickup location and available drivers.
     @Override
-    public void assignDriverToOrder(Long orderId) {
+    public Driver assignOrderToDriver(Long orderId) throws BusinessException {
+        // Encontrar a ordem pelo ID ou lançar uma exceção se não encontrada.
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order not found."));
 
+        // Verificar se a ordem está no estado correto para ser atribuída.
         if (!order.getStatus().equals(OrderStatus.PENDING)) {
             throw new BusinessException("Order is not in the correct state to be assigned.");
         }
 
-        List<Driver> availableDrivers = driverRepository.findAvailableDrivers();
+        // Encontrar motoristas disponíveis com base na origem do pedido.
+        List<Driver> availableDrivers = findAvailableDrivers(order.getOrigin());
         if (availableDrivers.isEmpty()) {
             throw new BusinessException("No drivers available at the moment.");
         }
 
-        // Assumes a method exists to calculate the distance to the pickup location.
-        String pickupLocationStr = String.valueOf(order.getPickupLocation());
-        if (pickupLocationStr == null || pickupLocationStr.isEmpty()) {
-            throw new BusinessException("Pickup location is not set for the order.");
+        // Tentar aceitar o pedido com cada motorista disponível até que um aceite.
+        for (Driver driver : availableDrivers) {
+            try {
+                acceptOrder(orderId, driver.getId());
+                return driver;  // Retorna o motorista que aceitou o pedido.
+            } catch (BusinessException e) {
+                System.out.println("Driver " + driver.getId() + " could not accept the order: " + e.getMessage());
+            }
         }
 
-        // Selects the closest available driver.
-        Driver closestDriver = availableDrivers.stream()
-                .min(Comparator.comparing(driver -> calculateDistance(pickupLocationStr, driver.getLocation())))
-                .orElseThrow(() -> new BusinessException("No suitable driver found for the order."));
-
-        // Assigns the selected driver to the order and updates its status to ASSIGNED.
-        order.setDriver(closestDriver);
-        order.setStatus(OrderStatus.ASSIGNED);
-
-        orderRepository.save(order);
+        // Se nenhum motorista aceitar o pedido, lançar uma exceção para indicar a falha.
+        throw new BusinessException("No available drivers could accept the order at this time.");
     }
+    // funçao que devolve uma lista de motoristas proximos a uma determinada localizaçao
+    @Override
+    public List<Driver> findAvailableDrivers(String location) {
+        List<Driver> drivers = driverRepository.findAvailableDrivers();
+
+        return drivers.stream()
+                .filter(driver -> calculateDistance(location, driver.getLocation()) <= OrderConstants.MAX_DRIVER_DISTANCE) // Filters drivers within the maximum distance.
+                .sorted(Comparator.comparing(driver -> calculateDistance(location, driver.getLocation()))) // Sorts drivers by distance, closest first.
+                .collect(Collectors.toList());
+    }
+
+
 
     // Calculates the distance between two geographical locations.
     public static double calculateDistance(String pickupLocationStr1, String pickupLocationStr2) {
@@ -297,23 +293,7 @@ public class OrderServiceImpl implements OrderService {
 
         return R * c; // Distance in kilometers.
     }
-    // Saves an order based on the provided OrderDto and associated client ID.
-    @Override
-    public Order saveOrder(OrderDto orderDto, Long clientId) {
-        // Estimates the order cost and stores the result in the OrderDto variable.
 
-        BigDecimal value = estimateOrderCost(orderDto.getOrigin(),orderDto.getDestination(),
-                orderDto.getCategory(), orderDto.getWidth(), orderDto.getHeight(), orderDto.getLength(),
-                orderDto.getWeight());
-        OrderStatus status = OrderStatus.PENDING; // Initial status for new orders.
-        Client client = clientService.getClientById(clientId); // Retrieves the client based on the provided client ID.
-
-        // Creates a new order with the calculated details and saves it to the repository.
-        Order order = new Order(orderDto.getOrigin(), orderDto.getDestination(), value, status, LocalDate.now(), LocalTime.now(),
-                orderDto.getDescription(), orderDto.getFeedback(), client, orderDto.getCategory());
-
-        return orderRepository.save(order); // Persists the order and returns the saved instance.
-    }
 
     // Retrieves the order history of a specific client using the client ID.
     @Override
@@ -324,32 +304,39 @@ public class OrderServiceImpl implements OrderService {
 
     // Accepts an order by setting its status to ACCEPTED if conditions are met.
     @Override
-    public void acceptOrder(Long orderId, Long driverId) throws BusinessException {
+    public Boolean acceptOrder(Long orderId, Long driverId) throws BusinessException {
         // Retrieves the order by ID or throws if not found.
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order not found."));
+
+        // Retrieves the driver by ID or throws if not found.
+        Driver driver = driverRepository.findById(driverId)
+                .orElseThrow(() -> new BusinessException("Driver not found."));
 
         // Validates the order's current status.
         if (!order.getStatus().equals(OrderStatus.PENDING)) {
             throw new BusinessException("Order is not in the correct state to be accepted.");
         }
 
-        // Retrieves the driver by ID or throws if not found.
-        Driver driver = driverRepository.findById(driverId)
-                .orElseThrow(() -> new BusinessException("Driver not found."));
-
         // Checks if the driver is online and available to accept orders.
         if (!driver.getIsOnline()) {
             throw new BusinessException("Driver is not available to accept orders.");
         }
 
+// Attempts to save the updated order, handling any exceptions that occur.
+        try {
         // Sets the order's status to ACCEPTED and assigns the driver.
         order.setStatus(OrderStatus.ACCEPTED);
         order.setDriver(driver);
+        driver.setIsBusy(true); // Marks the driver as busy after accepting the order.
 
-        // Attempts to save the updated order, handling any exceptions that occur.
-        try {
-            orderRepository.save(order);
+        // Saves the updated order to the repository.
+        orderRepository.save(order);
+        driverRepository.save(driver);
+
+        // Returns the driver that accepted the order.
+        return true;
+
         } catch (Exception e) {
             throw new BusinessException("Error updating the order: " + e.getMessage());
         }
@@ -439,8 +426,6 @@ public class OrderServiceImpl implements OrderService {
                 order.getCategory()
         );
     }
-
-
 
 
 }

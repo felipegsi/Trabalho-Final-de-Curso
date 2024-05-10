@@ -144,7 +144,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               builder: (BuildContext context) {
                                 return AlertDialog(
                                   content: const Text(
-                                    'Do you sure want to sing out?',
+                                    'Do you sure want to delete account?',
                                     style: TextStyle(fontSize: 20),
                                     // Aumenta o tamanho da fonte
                                     textAlign: TextAlign

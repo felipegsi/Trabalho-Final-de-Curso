@@ -47,7 +47,7 @@ public class DriverServiceImpl implements DriverService {
         // Creates a new Driver object and saves it in the database.
         Driver newDriver = new Driver(driverDto.name(), driverDto.email(), birthdate, encryptedPassword,
                 driverDto.phoneNumber(), driverDto.taxPayerNumber(), driverDto.street(),
-                driverDto.city(), driverDto.postalCode());
+                driverDto.city(), driverDto.postalCode(), false);
         newDriver = driverRepository.save(newDriver);
 
         // If vehicle information is present, associates and saves the vehicle for the driver.

@@ -21,6 +21,10 @@ public class Driver extends User {
     @JsonProperty(value = "is_online", access = JsonProperty.Access.WRITE_ONLY, defaultValue = "false")
     private Boolean isOnline = false; // Offline por padrão
 
+    @Column(name = "is_busy")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY, defaultValue = "false")
+    private Boolean isBusy = false; // Indica se o motorista está ocupado com um pedido
+
     @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL)//cascade para quando deletar um driver, deletar o veículo também
     @JsonBackReference
     private Vehicle vehicle;
@@ -45,14 +49,12 @@ public class Driver extends User {
 
     public Driver() {
     }
-    public Driver(String name, String email, String passwordHash, String s, int i, String street, String city, int i1) {
-        super(name, email, passwordHash, s, i, street,
-                city, i1);
-    }
 
-    public Driver(String name, String email, LocalDate birthdate, String passwordHash, String s, int i, String street, String city, int i1) {
-        super(name, email, passwordHash, s, i, street,
-                city, i1);
+
+    public Driver(String name, String email, LocalDate birthdate, String passwordHash, String phoneNumber,
+                  int taxPayerNumber, String street, String city, int postalCode, boolean isBusy) {
+        super(name, email, passwordHash, phoneNumber, taxPayerNumber, street, city, postalCode);
         this.birthdate = birthdate;
+        this.isBusy = isBusy;
     }
 }
