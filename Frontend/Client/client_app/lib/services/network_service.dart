@@ -23,6 +23,7 @@ class NetworkService {
     String? token = await storage.read(key: 'token');
     // Se o token for nulo, retorna false
     if (token == null) {
+      
       return false;
     }
 

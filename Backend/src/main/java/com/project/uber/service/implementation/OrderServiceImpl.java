@@ -260,12 +260,12 @@ public class OrderServiceImpl implements OrderService {
     // funçao que devolve uma lista de motoristas proximos a uma determinada localizaçao
     @Override
     public List<Driver> findAvailableDrivers(String location) {
-        List<Driver> drivers = driverRepository.findAvailableDrivers();
+        List<Driver> drivers = driverRepository.findAvailableDrivers();// essa variavel drivers é uma lista de motoristas disponiveis
 
         return drivers.stream()
-                .filter(driver -> calculateDistance(location, driver.getLocation()) <= OrderConstants.MAX_DRIVER_DISTANCE) // Filters drivers within the maximum distance.
+                .filter(driver -> calculateDistance(location, driver.getLocation()) <= 10) // Filters drivers within the maximum distance.
                 .sorted(Comparator.comparing(driver -> calculateDistance(location, driver.getLocation()))) // Sorts drivers by distance, closest first.
-                .collect(Collectors.toList());
+                .collect(Collectors.toList());// devolve uma lista de motoristas proximos a uma determinada localizaçao
     }
 
 
