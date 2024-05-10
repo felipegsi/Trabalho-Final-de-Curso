@@ -33,7 +33,7 @@ import java.util.List;
 @RequestMapping("/client")
 public class ClientController {
 
-    // Spring's @Autowired annotation is used to auto-wire beans into the class.
+    // Spring's @Autowired annotation is used to auto-wire beans into the class   .nijnijn
     // Below are the fields for services and components used in this controller.
     @Autowired
     private AuthenticationManager authenticationManager;
