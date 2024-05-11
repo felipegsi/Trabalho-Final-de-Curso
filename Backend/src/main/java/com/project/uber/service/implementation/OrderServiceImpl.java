@@ -54,10 +54,11 @@ public class OrderServiceImpl implements OrderService {
                 orderDto.getWeight());
         OrderStatus status = OrderStatus.PENDING; // Initial status for new orders.
         Client client = clientService.getClientById(clientId); // Retrieves the client based on the provided client ID.
+        Category category = orderDto.getCategory(); // Retrieves the category from the OrderDto.
 
         // Creates a new order with the calculated details and saves it to the repository.
         Order order = new Order(orderDto.getOrigin(), orderDto.getDestination(), value, status, LocalDate.now(), LocalTime.now(),
-                orderDto.getDescription(), orderDto.getFeedback(), client, orderDto.getCategory());
+                orderDto.getDescription(), orderDto.getFeedback(), client, category);
 
         return orderRepository.save(order); // Persists the order and returns the saved instance.
     }
@@ -246,11 +247,8 @@ public class OrderServiceImpl implements OrderService {
 
         // Tentar aceitar o pedido com cada motorista disponível até que um aceite.
         for (Driver driver : availableDrivers) {
-            try {
-                acceptOrder(orderId, driver.getId());
+            if (acceptOrder(orderId, driver.getId())) { // Tenta aceitar o pedido com o motorista atual.
                 return driver;  // Retorna o motorista que aceitou o pedido.
-            } catch (BusinessException e) {
-                System.out.println("Driver " + driver.getId() + " could not accept the order: " + e.getMessage());
             }
         }
 
@@ -258,7 +256,6 @@ public class OrderServiceImpl implements OrderService {
         throw new BusinessException("No available drivers could accept the order at this time.");
     }
     // funçao que devolve uma lista de motoristas proximos a uma determinada localizaçao
-    @Override
     public List<Driver> findAvailableDrivers(String location) {
         List<Driver> drivers = driverRepository.findAvailableDrivers();// essa variavel drivers é uma lista de motoristas disponiveis
 
@@ -304,7 +301,7 @@ public class OrderServiceImpl implements OrderService {
 
     // Accepts an order by setting its status to ACCEPTED if conditions are met.
     @Override
-    public Boolean acceptOrder(Long orderId, Long driverId) throws BusinessException {
+    public Boolean acceptOrder(Long orderId, Long driverId) throws BusinessException { //utilizar websocket para pergunta ao motorista se ele aceita a corrida
         // Retrieves the order by ID or throws if not found.
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order not found."));

@@ -27,9 +27,6 @@ public class Order {
     @Column(nullable = false, length = 150)
     private String destination;
 
-    @Embedded
-    private GeoPoint pickupLocation;
-
     @Column(nullable = false) // Ajuste precision e scale conforme necessário ++
     private BigDecimal  value; // BigDecimal é adequado para valores monetários
 
@@ -55,7 +52,8 @@ public class Order {
     @JoinColumn(name = "client_id") // Chave estrangeira na tabela 'orders'
     private Client client;
 
-    @Column(nullable = false, length = 50) // Permita um feedback mais longo, se necessário
+    @Column(nullable = false) // Permita um feedback ma is longo, se necessário
+    @Enumerated(EnumType.STRING)
     private Category category;
 
     // Campos adicionados conforme sugerido

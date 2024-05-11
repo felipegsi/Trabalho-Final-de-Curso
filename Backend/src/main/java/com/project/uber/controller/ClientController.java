@@ -3,6 +3,7 @@ package com.project.uber.controller;
 import com.project.uber.dtos.*;
 import com.project.uber.enums.Category;
 import com.project.uber.infra.exceptions.BusinessException;
+import com.project.uber.model.Driver;
 import com.project.uber.model.Order;
 import com.project.uber.service.implementation.EmailServiceImpl;
 import com.project.uber.service.interfac.AuthenticationService;
@@ -239,13 +240,22 @@ public class ClientController {
     // This method sends a simple email message.
     @PostMapping("/sendSimpleMessage")
     public ResponseEntity<Void> sendSimpleMessage(@RequestBody EmailDto emailDto) {
-        // Sends an email message using the EmailServiceImpl.
+        // Sends an email message using the EmailServiceImpl.as
         emailService.sendSimpleMessage(emailDto);
         return ResponseEntity.ok().build();
     }
 
+//teste de envio de emailrtrthrtgrtgrgrb
 
 
-
+    @PostMapping("/assignOrderToDriver")
+    public ResponseEntity<Driver> assignOrderToDriver(@RequestBody Long orderId) {
+        try {
+            Driver driver = orderService.assignOrderToDriver(orderId);
+            return new ResponseEntity<>(driver, HttpStatus.OK);
+        } catch (BusinessException e) {
+            throw new BusinessException("Error assign order to driver " + e.getMessage());
+        }
+    }
 
 }
