@@ -36,4 +36,6 @@ class Vehicle {
       'capacity': capacity,
     };
   }
+
+  static defaultVehicle() {}
 }

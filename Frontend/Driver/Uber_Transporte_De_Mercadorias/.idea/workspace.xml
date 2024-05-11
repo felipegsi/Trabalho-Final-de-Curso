@@ -5,20 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="34096f0e-b8ff-466f-9675-14438c4a8eb6" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/android/app/src/main/AndroidManifest.xml" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/android/app/src/main/AndroidManifest.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/main.dart" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/main.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/models/driver.dart" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/models/driver.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/models/vehicle.dart" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/models/vehicle.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/services/network_service.dart" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/services/network_service.dart" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/initial_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/login_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/main_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/order_history_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/profile_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/register_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/views/screens/vehicle_info_screen.dart" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/pubspec.lock" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/pubspec.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/pubspec.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/pubspec.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../../Backend/src/main/java/com/project/uber/controller/DriverController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../../../Backend/src/main/java/com/project/uber/controller/DriverController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -42,21 +30,21 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;cf.first.check.clang-format&quot;: &quot;false&quot;,
-    &quot;cidr.known.project.marker&quot;: &quot;true&quot;,
-    &quot;dart.analysis.tool.window.visible&quot;: &quot;false&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;Betania&quot;,
-    &quot;io.flutter.reload.alreadyRun&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/src/flutter/bin&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;dart.settings&quot;,
-    &quot;show.migrate.to.gradle.popup&quot;: &quot;false&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.cidr.known.project.marker": "true",
+    "cf.first.check.clang-format": "false",
+    "cidr.known.project.marker": "true",
+    "dart.analysis.tool.window.visible": "false",
+    "git-widget-placeholder": "Betania",
+    "io.flutter.reload.alreadyRun": "true",
+    "last_opened_file_path": "C:/Users/User/Desktop/TFC/Trabalho-Final-de-Curso/Frontend/Driver/Uber_Transporte_De_Mercadorias/Uber_Transporte_De_Mercadorias",
+    "settings.editor.selected.configurable": "dart.settings",
+    "show.migrate.to.gradle.popup": "false"
   }
-}</component>
+}]]></component>
   <component name="RunManager">
     <configuration name="main.dart" type="FlutterRunConfigurationType" factoryName="Flutter">
       <option name="filePath" value="$PROJECT_DIR$/Uber_Transporte_De_Mercadorias/lib/main.dart" />

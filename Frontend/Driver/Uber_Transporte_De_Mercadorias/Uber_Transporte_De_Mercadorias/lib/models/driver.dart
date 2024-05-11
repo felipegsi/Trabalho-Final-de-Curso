@@ -11,7 +11,7 @@ class Driver {
   final int postalCode;
   final double salary;
   final bool isOnline;
-  final Vehicle vehicle; // Ensure the Vehicle class also has a fromJson constructor if needed
+  final Vehicle? vehicle; // Ensure the Vehicle class also has a fromJson constructor if needed
   final String location;
   final String birthdate;
 
@@ -33,21 +33,23 @@ class Driver {
 
   factory Driver.fromJson(Map<String, dynamic> json) {
     return Driver(
-      name: json['name'],
-      email: json['email'],
-      password: json['password'],
-      phoneNumber: json['phoneNumber'],
-      taxPayerNumber: json['taxPayerNumber'],
-      street: json['street'],
-      city: json['city'],
-      postalCode: json['postalCode'],
-      salary: json['salary']?.toDouble() ?? 0.0,
-      isOnline: json['isOnline'] ?? false,
-      vehicle: Vehicle.fromJson(json['vehicle']),
-      location: json['location'],
-      birthdate: json['birthdate'],
+      name: json['name'] as String? ?? 'Default Name',
+      email: json['email'] as String? ?? 'default@example.com',
+      password: json['password'] as String? ?? '',
+      phoneNumber: json['phoneNumber'] as String? ?? 'No Phone',
+      taxPayerNumber: json['taxPayerNumber'] as int? ?? 0,
+      street: json['street'] as String? ?? 'No Street',
+      city: json['city'] as String? ?? 'No City',
+      postalCode: json['postalCode'] as int? ?? 0,
+      salary: (json['salary'] as num?)?.toDouble() ?? 0.0,
+      isOnline: json['isOnline'] as bool? ?? false,
+      vehicle: json['vehicle'] != null ? Vehicle.fromJson(json['vehicle'] as Map<String, dynamic>) : null,
+      location: json['location'] as String? ?? 'No Location',
+      birthdate: json['birthdate'] as String? ?? 'No Birthdate',
     );
   }
+
+
 
   Map<String, dynamic> toJson() {
     return {
@@ -61,9 +63,10 @@ class Driver {
       'postalCode': postalCode,
       'salary': salary,
       'isOnline': isOnline,
-      'vehicle': vehicle.toJson(),
+      'vehicle': vehicle?.toJson(),
       'location': location,
       'birthdate': birthdate,
     };
   }
+
 }

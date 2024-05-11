@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:projeto_proj/views/screens/profile_screen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import '../../services/network_service.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:projeto_proj/views/screens/auth/register_screen.dart';
+import '../../../services/network_service.dart';
+import '../home/home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
-
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
   void _attemptLogin(BuildContext context) async {
     final networkService = NetworkService();
-    String? token = await networkService.login(
-        _emailController.text, _passwordController.text);
-    if (token != null) {
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      await prefs.setString('token', token);
+    String? token = await networkService.login(_emailController.text, _passwordController.text);// tenta fazer login
+    if (token != null) {// se o token for diferente de nulo
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => ProfileScreen()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
             (Route<dynamic> route) => false,
       );
     } else {
@@ -56,16 +53,17 @@ class _LoginScreenState extends State<LoginScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-
             SizedBox(height: MediaQuery.of(context).size.height * 0.2),
-            Image.asset('assets/images/logo.png', height: 150),
+            SvgPicture.asset('assets/images/logo-svg.svg', height: 150),
             SizedBox(height: 30),
             _buildTextField(_emailController, 'E-mail', Icons.email),
             SizedBox(height: 16),
             _buildTextField(_passwordController, 'Password', Icons.lock, isObscure: true),
             SizedBox(height: 24),
             _buildLoginButton(context),
+            _buildRecuperatioButton(context),
             _buildRegisterButton(context),
+
           ],
         ),
       ),
@@ -96,7 +94,7 @@ class _LoginScreenState extends State<LoginScreen> {
           foregroundColor: Colors.white,
           backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
       ),
     );
@@ -104,8 +102,14 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget _buildRegisterButton(BuildContext context) {
     return TextButton(
+      onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => RegisterScreen())),
+      child: const Text('Registe-se aqui!', style: TextStyle(color: Colors.black54)),
+    );
+  }
+  Widget _buildRecuperatioButton(BuildContext context) {
+    return TextButton(
       onPressed: () => Navigator.of(context).pushNamed('/register'),
-      child: Text('Não tem uma conta? Registe-se aqui.', style: TextStyle(color: Colors.black54)),
+      child: const Text('Esqueceu a palavra passe?', style: TextStyle(color: Colors.black54)),
     );
   }
 }

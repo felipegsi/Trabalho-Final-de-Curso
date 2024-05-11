@@ -1,18 +1,20 @@
 import 'package:flutter/material.dart';
-import 'login_screen.dart';
-import 'register_screen.dart';
+import '../auth/login_screen.dart';
+import '../auth/register_screen.dart';
 
 class InitialScreen extends StatelessWidget {
+  const InitialScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        padding: EdgeInsets.symmetric(horizontal: 20),
+        padding: const EdgeInsets.symmetric(horizontal: 20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topRight,
             end: Alignment.bottomLeft,
-            stops: [0.1, 0.9],
+            stops: const [0.1, 0.9],
             colors: [
               Colors.black,
               Colors.grey[800]!, // Assume that the ThemeData has Brightness.dark
@@ -27,7 +29,7 @@ class InitialScreen extends StatelessWidget {
               'assets/images/uber_logo_white.jpeg', // Replace with your asset image path
               height: 100.0,
             ),
-            SizedBox(height: 50),
+            const SizedBox(height: 50),
             ElevatedButton(
               onPressed: () {
                 Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen()));

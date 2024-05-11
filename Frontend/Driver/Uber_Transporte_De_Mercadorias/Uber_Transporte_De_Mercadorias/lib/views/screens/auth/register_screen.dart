@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Adicione a dependência 'intl' ao seu pubspec.yaml
-import 'package:projeto_proj/views/screens/profile_screen.dart';
 import 'package:projeto_proj/services/network_service.dart';
-import 'package:projeto_proj/widgets/custom_button.dart';
+import 'package:projeto_proj/views/screens/home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   @override
@@ -28,7 +27,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
 
   String? _selectedVehicleType = 'LIGHT'; // Set a default value or manage the null case
 
-  List<String> _vehicleTypes = ['LIGHT', 'HEAVY', 'MOTORCYCLE', 'OTHER', 'TOW'];
+  final List<String> _vehicleTypes = ['LIGHT', 'HEAVY', 'MOTORCYCLE', 'OTHER', 'TOW'];
 
   @override
   void dispose() {
@@ -104,7 +103,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
         ),
         keyboardType: keyboardType,
         obscureText: obscureText,
-        style: TextStyle(color: Colors.black, fontSize: 18.0),
+        style: const TextStyle(color: Colors.black, fontSize: 18.0),
       ),
     );
   }
@@ -164,7 +163,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
     if (registrationSuccess) {
       // Navega para a tela de perfil após o registro bem-sucedido
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => ProfileScreen()),
+        MaterialPageRoute(builder: (context) => HomeScreen()),
             (Route<dynamic> route) => false,
       );
     } else {
@@ -173,8 +172,8 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: Text('Error'),
-            content: Text('Failed to register. Please try again.'),
+            title: const Text('Error'),
+            content: const Text('Failed to register. Please try again.'),
             actions: [
               TextButton(
                 child: Text('OK'),
@@ -195,7 +194,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
         title:
-        Text('Registar Motorista', style: TextStyle(color: Colors.white)),
+        const Text('Registar Motorista', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
@@ -268,7 +267,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
                 label: 'Capacidade do Veículo',
                 keyboardType: TextInputType.phone,
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _attemptRegister(context),
                 style: ElevatedButton.styleFrom(
@@ -280,7 +279,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
                   ),
                   padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
-                child: Text('Finalizar'),
+                child: const Text('Finalizar'),
               ),
             ],
           ),
