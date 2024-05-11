@@ -1,7 +1,9 @@
 package com.project.uber.service.implementation;
 
 import com.project.uber.dtos.DriverDto;
+import com.project.uber.dtos.RegistrationDto;
 import com.project.uber.dtos.VehicleDto;
+import com.project.uber.enums.VehicleType;
 import com.project.uber.infra.exceptions.BusinessException;
 import com.project.uber.model.Driver;
 import com.project.uber.model.GeoPoint;
@@ -10,6 +12,7 @@ import com.project.uber.repository.DriverRepository;
 import com.project.uber.repository.VehicleRepository;
 import com.project.uber.service.interfac.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.project.uber.model.Vehicle;
@@ -29,50 +32,59 @@ public class DriverServiceImpl implements DriverService {
     private PasswordEncoder passwordEncoder;
     @Autowired
     private VehicleRepository vehicleRepository;
-
     // Saves a new driver to the repository after performing checks and password encryption.
-    @Override
-    public DriverDto saveDriver(DriverDto driverDto) {
+
+    // Método modificado para incluir a senha como um parâmetro
+    public DriverDto saveDriver(RegistrationDto registrationDto) {
         // Checks if a driver with the same email already exists.
-        Driver existingDriver = driverRepository.findByEmail(driverDto.email());
+        Driver existingDriver = driverRepository.findByEmail(registrationDto.email());
         if (existingDriver != null) {
             throw new BusinessException("Driver already exists!");
         }
 
-        // Encrypts the password.
-        String encryptedPassword = passwordEncoder.encode(driverDto.password());
-        // Parses the birthdate from String to LocalDate.
-        LocalDate birthdate = LocalDate.parse(driverDto.birthdate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
+        LocalDate birthdate = LocalDate.parse(registrationDto.birthdate(), DateTimeFormatter.ofPattern("dd/MM/yyyy"));
 
-        // Creates a new Driver object and saves it in the database.
-        Driver newDriver = new Driver(driverDto.name(), driverDto.email(), birthdate, encryptedPassword,
-                driverDto.phoneNumber(), driverDto.taxPayerNumber(), driverDto.street(),
-                driverDto.city(), driverDto.postalCode());
-        newDriver = driverRepository.save(newDriver);
 
-        // If vehicle information is present, associates and saves the vehicle for the driver.
-        Vehicle vehicleInfo = driverDto.vehicleDto();
-        if (vehicleInfo != null) {
-            Vehicle vehicle = new Vehicle();
-            vehicle.setDriver(newDriver);
-            vehicle.setYear(vehicleInfo.getYear());
-            vehicle.setPlate(vehicleInfo.getPlate());
-            vehicle.setBrand(vehicleInfo.getBrand());
-            vehicle.setModel(vehicleInfo.getModel());
-            vehicle.setVehicleType(vehicleInfo.getVehicleType());
-            vehicle.setCapacity(vehicleInfo.getCapacity());
-            vehicleRepository.save(vehicle);
-        }
+        // Criptografa a senha
+        String encryptedPassword = passwordEncoder.encode(registrationDto.password());
 
-        // Formats the birthdate for return.
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-        String formattedBirthdate = newDriver.getBirthdate().format(formatter);
+        // Cria uma nova entidade Driver
+        Driver driver = new Driver();
+        driver.setName(registrationDto.name());
+        driver.setEmail(registrationDto.email());
+        driver.setBirthdate(birthdate);
+        driver.setPassword(encryptedPassword);
+        driver.setPhoneNumber(registrationDto.phoneNumber());
+        driver.setTaxPayerNumber(registrationDto.taxPayerNumber());
+        driver.setStreet(registrationDto.street());
+        driver.setCity(registrationDto.city());
+        driver.setPostalCode(registrationDto.postalCode());
 
-        // Returns the newly created DriverDto.
-        return new DriverDto(newDriver.getName(), newDriver.getEmail(), formattedBirthdate, newDriver.getPhoneNumber(),
-                newDriver.getTaxPayerNumber(), newDriver.getStreet(), newDriver.getCity(),
-                newDriver.getPostalCode(), vehicleInfo);
+        // Converte VehicleDto para Vehicle
+        Vehicle vehicle = convertToVehicle(registrationDto.vehicleDto());
+        driver.setVehicle(vehicle);
+        vehicle.setDriver(driver); // Configura a relação bidirecional
+
+        // Salva o driver no banco de dados
+        driverRepository.save(driver);
+
+        // Retorna um novo DriverDto
+        return convertToDriverDto(driver);
     }
+
+    private Vehicle convertToVehicle(VehicleDto vehicleDto) {
+        // Lógica de conversão de VehicleDto para Vehicle
+        Vehicle vehicle = new Vehicle();
+        vehicle.setYear(vehicleDto.getYear());
+        vehicle.setPlate(vehicleDto.getPlate());
+        vehicle.setBrand(vehicleDto.getBrand());
+        vehicle.setModel(vehicleDto.getModel());
+        vehicle.setVehicleType(vehicleDto.getVehicleType());
+        vehicle.setCapacity(vehicleDto.getCapacity());
+        return vehicle;
+    }
+
+
 
     // Changes the online status of a driver.
     @Override
@@ -177,7 +189,7 @@ public class DriverServiceImpl implements DriverService {
         VehicleDto vehicleDto = null;
         if (driver.getVehicle() != null) {
             Vehicle vehicle = driver.getVehicle();
-            vehicleDto = new VehicleDto(vehicle.getYear(), vehicle.getBrand(), vehicle.getPlate(),
+            vehicleDto = new VehicleDto(String.valueOf(vehicle.getVehicleType()),vehicle.getYear(), vehicle.getBrand(), vehicle.getPlate(),
                     vehicle.getModel(), vehicle.getCapacity());
         }
 

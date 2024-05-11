@@ -4,9 +4,11 @@ import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
 
+@EqualsAndHashCode(callSuper = true)
 @Entity
 @Table(name = "drivers")
 @Data
@@ -31,28 +33,13 @@ public class Driver extends User {
     @Column(name = "birthdate")
     private LocalDate birthdate;
 
-    public Driver(String name, String email, String password,
-                  String phoneNumber, int taxPayerNumber, String street,
-                  String city, int postalCode,
-                  //byte[] criminalRecord
-                  Vehicle vehicle
-    ) {
-        super(name, email, password, phoneNumber, taxPayerNumber, street,
-                city, postalCode);
-        //this.criminalRecord = criminalRecord;
-        this.vehicle = vehicle;
-    }
 
     public Driver() {
     }
-    public Driver(String name, String email, String passwordHash, String s, int i, String street, String city, int i1) {
-        super(name, email, passwordHash, s, i, street,
-                city, i1);
-    }
 
-    public Driver(String name, String email, LocalDate birthdate, String passwordHash, String s, int i, String street, String city, int i1) {
-        super(name, email, passwordHash, s, i, street,
-                city, i1);
+    public Driver(String name, String email, LocalDate birthdate, String password, String phoneNumber, Integer taxPayerNumber,
+                  String street, String city, Integer postalCode) {
+        super(name, email, password, phoneNumber, taxPayerNumber, street, city, postalCode);
         this.birthdate = birthdate;
     }
 }

@@ -1,5 +1,6 @@
 package com.project.uber.controller;
-
+import jakarta.validation.Valid;
+import org.springframework.validation.BindingResult;
 import com.project.uber.dtos.*;
 import com.project.uber.enums.OrderStatus;
 import com.project.uber.infra.exceptions.BusinessException;
@@ -43,17 +44,23 @@ public class DriverController {
     private EmailServiceImpl emailService;
 
     // This method handles POST requests to "/register" and registers a new driver.
-    @PostMapping("/register") // This annotation marks the method to accept POST requests on the path "/register".
-    private DriverDto save(@RequestBody DriverDto driverDto) { // @RequestBody annotation indicates a method parameter should be bound to the body of the web request.
+    @PostMapping("/register")
+    public ResponseEntity<?> register(@Valid @RequestBody RegistrationDto registrationDto, BindingResult result) {
+        if (result.hasErrors()) {
+            // Retorna uma resposta de BadRequest com detalhes do erro
+            return ResponseEntity.badRequest().body(result.getAllErrors());
+        }
+
         try {
-            // Attempts to save the driver and return the saved driver data.
-            return driverService.saveDriver(driverDto);
-        } catch (BusinessException e) {
-            // If there's a business logic exception, it rethrows it with a custom message.
-            throw new BusinessException("Error registering driver: " + e.getMessage());
+            // Chama o serviço para salvar o driver baseado nos dados do DTO
+            DriverDto savedDriver = driverService.saveDriver(registrationDto);
+            // Retorna uma resposta de sucesso com o DTO do driver salvo
+            return ResponseEntity.ok(savedDriver);
+        } catch (Exception e) {
+            // Em caso de outros erros, retorna uma resposta de InternalServerError
+            return ResponseEntity.internalServerError().body("Error registering driver: " + e.getMessage());
         }
     }
-
     // This method handles driver authentication with a POST request to "/login".
     @PostMapping("/login")
     public ResponseEntity<?> auth(@RequestBody AuthDto authDto) { // ResponseEntity is used to represent the whole HTTP response: status code, headers, and body.
@@ -101,7 +108,7 @@ public class DriverController {
     }
 
     // This method handles accepting an order by a driver.
-    @PostMapping("/accept-order") // Handles POST requests to "/accept-order".
+    @PostMapping("/accept-order") // Handles POST requests to "/accept-order".teste
     public ResponseEntity<?> acceptOrder(@RequestBody OrderDto acceptOrderRequest,
                                          @RequestHeader("Authorization") String token) {
         try {
