@@ -3,6 +3,7 @@ package com.project.uber.controller;
 import com.project.uber.dtos.*;
 import com.project.uber.enums.Category;
 import com.project.uber.infra.exceptions.BusinessException;
+import com.project.uber.model.Driver;
 import com.project.uber.model.Order;
 import com.project.uber.service.implementation.EmailServiceImpl;
 import com.project.uber.service.interfac.AuthenticationService;
@@ -33,7 +34,7 @@ import java.util.List;
 @RequestMapping("/client")
 public class ClientController {
 
-    // Spring's @Autowired annotation is used to auto-wire beans into the class   .nijnijn
+    // Spring's @Autowired annotation is used to auto-wire beans into the class.
     // Below are the fields for services and components used in this controller.
     @Autowired
     private AuthenticationManager authenticationManager;
@@ -86,7 +87,7 @@ public class ClientController {
         ClientDto clientDto = clientService.viewProfile(clientId);
         return new ResponseEntity<>(clientDto, HttpStatus.OK);
     }
-// verify if the token is valid
+    // verify if the token is valid
     @GetMapping("/isValidToken")
     public ResponseEntity<Boolean> isValidToken(@RequestHeader("Authorization") String token) {
         try {
@@ -112,7 +113,7 @@ public class ClientController {
     // This method estimates the cost of an order based on its details.
     @PostMapping("/estimateAllCategoryOrderCost") // Handles POST requests to "/estimateOrderCost".
     public ResponseEntity<List<BigDecimal>> estimateAllCategoryOrderCost( @RequestBody LocationDto locationDto,
-                                                        @RequestHeader("Authorization") String token) {
+                                                                          @RequestHeader("Authorization") String token) {
         try {
             if (locationDto.getOrigin() == null || locationDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
@@ -135,7 +136,7 @@ public class ClientController {
 
     @PostMapping("/estimateOrderCost") // Handles POST requests to "/estimateOrderCost".
     public ResponseEntity<BigDecimal> estimateOrderCost(@RequestBody OrderDto orderDto ,
-                                                              @RequestHeader("Authorization") String token) {
+                                                        @RequestHeader("Authorization") String token) {
         try {
             if (orderDto == null || orderDto.getOrigin() == null || orderDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
@@ -144,7 +145,7 @@ public class ClientController {
             if(validateTokenAndGetClientId(token) <= 0){
                 throw new BusinessException("Client not found.");
             }
-           validateTokenAndGetClientId(token);
+            validateTokenAndGetClientId(token);
 
             // Calculates the estimated cost of an order.
 
@@ -239,13 +240,21 @@ public class ClientController {
     // This method sends a simple email message.
     @PostMapping("/sendSimpleMessage")
     public ResponseEntity<Void> sendSimpleMessage(@RequestBody EmailDto emailDto) {
-        // Sends an email message using the EmailServiceImpl.
+        // Sends an email message using the EmailServiceImpl.as
         emailService.sendSimpleMessage(emailDto);
         return ResponseEntity.ok().build();
     }
 
+//teste de envio de emailrtrthrtgrtgrgrb
 
-
-
+    @PostMapping("/assignOrderToDriver")
+    public ResponseEntity<Driver> assignOrderToDriver(@RequestBody Long orderId, @RequestHeader("Authorization") String token) {
+        try {
+            Driver driver = orderService.assignOrderToDriver(orderId);
+            return new ResponseEntity<>(driver, HttpStatus.OK);
+        } catch (BusinessException e) {
+            throw new BusinessException("Error assign order to driver: " + e.getMessage());
+        }
+    }
 
 }

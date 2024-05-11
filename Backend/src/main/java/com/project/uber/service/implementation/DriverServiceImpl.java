@@ -3,16 +3,13 @@ package com.project.uber.service.implementation;
 import com.project.uber.dtos.DriverDto;
 import com.project.uber.dtos.RegistrationDto;
 import com.project.uber.dtos.VehicleDto;
-import com.project.uber.enums.VehicleType;
 import com.project.uber.infra.exceptions.BusinessException;
 import com.project.uber.model.Driver;
-import com.project.uber.model.GeoPoint;
 import com.project.uber.model.Order;
 import com.project.uber.repository.DriverRepository;
 import com.project.uber.repository.VehicleRepository;
 import com.project.uber.service.interfac.DriverService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.project.uber.model.Vehicle;
@@ -169,13 +166,6 @@ public class DriverServiceImpl implements DriverService {
 
         driver.setPassword(passwordEncoder.encode(newPassword));
         driverRepository.save(driver);
-    }
-
-    // Finds available drivers, converting each to a DriverDto.
-    @Override
-    public List<DriverDto> findAvailableDrivers() {
-        List<Driver> drivers = driverRepository.findAvailableDrivers();
-        return drivers.stream().map(this::convertToDriverDto).collect(Collectors.toList());
     }
 
     // Selects a driver for an order based on certain criteria (e.g., proximity).

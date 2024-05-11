@@ -29,8 +29,6 @@ public interface DriverService {
 
     void changePassword(Long clientId, String oldPassword, String newPassword);
 
-    List<DriverDto> findAvailableDrivers();
-
     Driver selectDriverForOrder(Order order, List<Driver> availableDrivers);
 
     void updateDriverLocationAndStatus(Long driverId, String location, boolean isOnline);

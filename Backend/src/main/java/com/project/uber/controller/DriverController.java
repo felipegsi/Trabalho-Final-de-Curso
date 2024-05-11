@@ -5,7 +5,6 @@ import com.project.uber.dtos.*;
 import com.project.uber.enums.OrderStatus;
 import com.project.uber.infra.exceptions.BusinessException;
 import com.project.uber.model.Driver;
-import com.project.uber.model.GeoPoint;
 import com.project.uber.service.implementation.EmailServiceImpl;
 import com.project.uber.service.interfac.AuthenticationService;
 import com.project.uber.service.interfac.DriverService;
@@ -94,18 +93,6 @@ public class DriverController {
         }
     }
 
-    // This method returns a list of available drivers.
-    @GetMapping("/available") // Handles GET requests to "/available".
-    public ResponseEntity<List<DriverDto>> getAvailableDrivers() {
-        try {
-            // Retrieves a list of available drivers from the service and returns it.
-            List<DriverDto> availableDrivers = driverService.findAvailableDrivers();
-            return new ResponseEntity<>(availableDrivers, HttpStatus.OK);
-        } catch (BusinessException e) {
-            // Handles exceptions when fetching available drivers.
-            return ResponseEntity.badRequest().body(null); // Could implement a different error handling.
-        }
-    }
 
     // This method handles accepting an order by a driver.
     @PostMapping("/accept-order") // Handles POST requests to "/accept-order".teste

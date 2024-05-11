@@ -22,7 +22,9 @@ public class Driver extends User {
     @Column(name = "is_online")
     @JsonProperty(value = "is_online", access = JsonProperty.Access.WRITE_ONLY, defaultValue = "false")
     private Boolean isOnline = false; // Offline por padrão
-
+    @Column(name = "is_busy")
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY, defaultValue = "false")
+    private Boolean isBusy = false; // Indica se o motorista está ocupado com um pedido
     @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL)//cascade para quando deletar um driver, deletar o veículo também
     @JsonBackReference
     private Vehicle vehicle;
