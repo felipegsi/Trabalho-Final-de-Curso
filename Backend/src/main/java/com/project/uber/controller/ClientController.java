@@ -87,7 +87,7 @@ public class ClientController {
         ClientDto clientDto = clientService.viewProfile(clientId);
         return new ResponseEntity<>(clientDto, HttpStatus.OK);
     }
-// verify if the token is valid
+    // verify if the token is valid
     @GetMapping("/isValidToken")
     public ResponseEntity<Boolean> isValidToken(@RequestHeader("Authorization") String token) {
         try {
@@ -113,7 +113,7 @@ public class ClientController {
     // This method estimates the cost of an order based on its details.
     @PostMapping("/estimateAllCategoryOrderCost") // Handles POST requests to "/estimateOrderCost".
     public ResponseEntity<List<BigDecimal>> estimateAllCategoryOrderCost( @RequestBody LocationDto locationDto,
-                                                        @RequestHeader("Authorization") String token) {
+                                                                          @RequestHeader("Authorization") String token) {
         try {
             if (locationDto.getOrigin() == null || locationDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
@@ -136,7 +136,7 @@ public class ClientController {
 
     @PostMapping("/estimateOrderCost") // Handles POST requests to "/estimateOrderCost".
     public ResponseEntity<BigDecimal> estimateOrderCost(@RequestBody OrderDto orderDto ,
-                                                              @RequestHeader("Authorization") String token) {
+                                                        @RequestHeader("Authorization") String token) {
         try {
             if (orderDto == null || orderDto.getOrigin() == null || orderDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
@@ -145,7 +145,7 @@ public class ClientController {
             if(validateTokenAndGetClientId(token) <= 0){
                 throw new BusinessException("Client not found.");
             }
-           validateTokenAndGetClientId(token);
+            validateTokenAndGetClientId(token);
 
             // Calculates the estimated cost of an order.
 
@@ -247,14 +247,13 @@ public class ClientController {
 
 //teste de envio de emailrtrthrtgrtgrgrb
 
-
     @PostMapping("/assignOrderToDriver")
-    public ResponseEntity<Driver> assignOrderToDriver(@RequestBody Long orderId) {
+    public ResponseEntity<Driver> assignOrderToDriver(@RequestBody Long orderId, @RequestHeader("Authorization") String token) {
         try {
             Driver driver = orderService.assignOrderToDriver(orderId);
             return new ResponseEntity<>(driver, HttpStatus.OK);
         } catch (BusinessException e) {
-            throw new BusinessException("Error assign order to driver " + e.getMessage());
+            throw new BusinessException("Error assign order to driver: " + e.getMessage());
         }
     }
 

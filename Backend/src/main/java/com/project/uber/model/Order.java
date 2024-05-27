@@ -56,21 +56,6 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private Category category;
 
-    // Campos adicionados conforme sugerido
-    //@Enumerated(EnumType.STRING)
-   // private PaymentMethod payment; // Supondo que você tenha um enum PaymentMethod
-
-   // @ManyToOne
-   // @JoinColumn(name = "driver_id") // Define a coluna de chave estrangeira para Driver
-   // private Driver driver;
-
-    // @ManyToOne
-     // @JoinColumn(name = "vehicle_id") // Define a coluna de chave estrangeira para Vehicle
-    //private Vehicle vehicle;
-
-    // @Column(nullable = true) // Avaliações podem não estar presentes imediatamente
-    // private Integer rating; // Considerando rating como um número
-
 
     @ManyToOne
     @JoinColumn(name = "driver_id") // Define a coluna de chave estrangeira para Driver

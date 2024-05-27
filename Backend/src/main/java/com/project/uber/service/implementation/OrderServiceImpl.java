@@ -11,12 +11,15 @@ import com.project.uber.infra.exceptions.UnauthorizedDriverException;
 import com.project.uber.model.Client;
 import com.project.uber.model.Driver;
 import com.project.uber.model.Order;
+import com.project.uber.model.OrderRequestMessage;
 import com.project.uber.repository.DriverRepository;
 import com.project.uber.repository.OrderRepository;
 import com.project.uber.service.interfac.ClientService;
 import com.project.uber.service.interfac.OrderService;
+import com.project.uber.service.interfac.ResponseStorage;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -43,6 +46,12 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private DriverRepository driverRepository;
+
+    @Autowired
+    private SimpMessagingTemplate messagingTemplate;
+
+    @Autowired
+    private ResponseStorage responseStorage;
 
     // Saves an order based on the provided OrderDto and associated client ID.
     @Override
@@ -241,6 +250,8 @@ public class OrderServiceImpl implements OrderService {
 
         // Encontrar motoristas disponíveis com base na origem do pedido.
         List<Driver> availableDrivers = findAvailableDrivers(order.getOrigin());
+
+        // Verificar se há motoristas disponíveis para aceitar a ordem.
         if (availableDrivers.isEmpty()) {
             throw new BusinessException("No drivers available at the moment.");
         }
@@ -260,7 +271,7 @@ public class OrderServiceImpl implements OrderService {
         List<Driver> drivers = driverRepository.findAvailableDrivers();// essa variavel drivers é uma lista de motoristas disponiveis
 
         return drivers.stream()
-                .filter(driver -> calculateDistance(location, driver.getLocation()) <= 10) // Filters drivers within the maximum distance.
+                .filter(driver -> calculateDistance(location, driver.getLocation()) <= 1000000000) // Filters drivers within the maximum distance.
                 .sorted(Comparator.comparing(driver -> calculateDistance(location, driver.getLocation()))) // Sorts drivers by distance, closest first.
                 .collect(Collectors.toList());// devolve uma lista de motoristas proximos a uma determinada localizaçao
     }
@@ -300,45 +311,41 @@ public class OrderServiceImpl implements OrderService {
     }
 
     // Accepts an order by setting its status to ACCEPTED if conditions are met.
+
     @Override
-    public Boolean acceptOrder(Long orderId, Long driverId) throws BusinessException { //utilizar websocket para pergunta ao motorista se ele aceita a corrida
-        // Retrieves the order by ID or throws if not found.
+    public Boolean acceptOrder(Long orderId, Long driverId) throws BusinessException {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new BusinessException("Order not found."));
-
-        // Retrieves the driver by ID or throws if not found.
         Driver driver = driverRepository.findById(driverId)
                 .orElseThrow(() -> new BusinessException("Driver not found."));
 
-        // Validates the order's current status.
         if (!order.getStatus().equals(OrderStatus.PENDING)) {
             throw new BusinessException("Order is not in the correct state to be accepted.");
         }
 
-        // Checks if the driver is online and available to accept orders.
         if (!driver.getIsOnline()) {
             throw new BusinessException("Driver is not available to accept orders.");
         }
 
-// Attempts to save the updated order, handling any exceptions that occur.
-        try {
-        // Sets the order's status to ACCEPTED and assigns the driver.
-        order.setStatus(OrderStatus.ACCEPTED);
-        order.setDriver(driver);
-        driver.setIsBusy(true); // Marks the driver as busy after accepting the order.
+        // Enviar solicitação para o driver via WebSocket
+        messagingTemplate.convertAndSendToUser(
+                driver.getUsername(), // Assumindo que o driver possui um username único para identificação
+                "/queue/order-request", // Canal privado do motorista
+                new OrderRequestMessage(orderId, "Do you accept this order?")); // Mensagem personalizada que pode ser um objeto
 
-        // Saves the updated order to the repository.
-        orderRepository.save(order);
-        driverRepository.save(driver);
-
-        // Returns the driver that accepted the order.
-        return true;
-
-        } catch (Exception e) {
-            throw new BusinessException("Error updating the order: " + e.getMessage());
+        // Aguardar resposta do motorista
+        Boolean response = responseStorage.waitForResponse(driverId);
+        if (Boolean.TRUE.equals(response)) {
+            order.setStatus(OrderStatus.ACCEPTED);
+            order.setDriver(driver);
+            driver.setIsBusy(true);
+            orderRepository.save(order);
+            driverRepository.save(driver);
+            return true;
+        } else {
+            throw new BusinessException("Driver declined the order or did not respond.");
         }
     }
-
     // Confirms the pickup of an order by the assigned driver.
     @Override
     @Transactional

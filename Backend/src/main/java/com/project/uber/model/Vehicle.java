@@ -40,7 +40,8 @@ public class Vehicle {
     @Enumerated(EnumType.STRING)
     private VehicleType vehicleType;
 
-    public Vehicle(int year, String plate, String brand, String model, Object capacity) {
+    public Vehicle(String v, int year, String plate, String brand, String model, Object capacity) {
+        this.vehicleType = VehicleType.valueOf(v);
         this.year = year;
         this.plate = plate;
         this.brand = brand;

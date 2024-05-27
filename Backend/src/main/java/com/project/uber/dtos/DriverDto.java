@@ -2,28 +2,21 @@ package com.project.uber.dtos;
 
 import com.project.uber.model.Vehicle;
 
-import java.time.LocalDate;
-
-public record DriverDto(String name,
-                        String email,
-                        String birthdate,
-                        String password,
-                        String phoneNumber,
-                        int taxPayerNumber,
-                        String street,
-                        String city,
-                        int postalCode,
-
-                        // byte[] criminalRecord evitar essa complexidade agora
-                        Vehicle vehicleDto
-
+public record DriverDto(
+        String name,
+        String email,
+        String birthdate,
+        String phoneNumber,
+        Integer taxPayerNumber,
+        String street,
+        String city,
+        Integer postalCode,
+        VehicleDto vehicleDto // Use a classe DTO para `Vehicle`
 ) {
-    public DriverDto(String name, String email, String birthdate,  String phoneNumber, int taxPayerNumber, String street, String city, int postalCode, VehicleDto vehicleDto) {
-        this(name, email, birthdate, phoneNumber, taxPayerNumber, street, city, postalCode, new Vehicle(vehicleDto.getYear(), vehicleDto.getPlate(), vehicleDto.getBrand(), vehicleDto.getModel(), vehicleDto.getCapacity()));
+    public DriverDto(String name, String email, String formattedBirthdate, String phoneNumber, Integer taxPayerNumber, String street, String city, Integer postalCode, Vehicle vehicle) {
+        this(name, email, formattedBirthdate, phoneNumber, taxPayerNumber, street, city, postalCode, VehicleDto.fromVehicle(vehicle));
     }
 
-    public DriverDto(String name, String email, String birthdate, String phoneNumber, int taxPayerNumber, String street, String city, int postalCode, Vehicle vehicle) {
-        this(name, email, birthdate, null, phoneNumber, taxPayerNumber, street, city, postalCode, vehicle);
-    }
+    // Método estático de fábrica que aceita um Vehicle e constrói um VehicleDto
 
 }
