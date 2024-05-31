@@ -15,11 +15,11 @@ class NetworkService {
   final storage = new FlutterSecureStorage();
 
   // URL base para todas as requisições
-  final String baseUrl = 'http://10.0.2.2:8080/client';
+  final String baseUrl = 'http://192.168.31.1:8080/client'; //10.0.2.2
 
   // Função para verificar se o token é válido
   Future<bool> isValidToken() async {
-    // Recupera o token do armazenamento seguro
+    // Recupera o token do armazenamento segurodsff
     String? token = await storage.read(key: 'token');
     // Se o token for nulo, retorna false
     if (token == null) {
@@ -119,7 +119,9 @@ class NetworkService {
     }
 
     final url = Uri.parse('$baseUrl/viewProfile');
-    final response = await http.get(url, headers: {
+    final response = await http.get(
+        url,
+        headers: {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token', // Adicione 'Bearer ' antes do token
     });
