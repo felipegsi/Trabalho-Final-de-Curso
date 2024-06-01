@@ -1,26 +1,33 @@
-/*import 'package:decimal/decimal.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:http/http.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:open_route_service/open_route_service.dart';
 import '../../../models/order.dart';
 import '../../../services/network_service.dart';
+import '../order_confirmed/searching_driver_screen.dart';
+import 'check_measures.dart';
 
-class SearchingDriverScreen extends StatefulWidget {
-  final int orderId;
+class OrderConfirmationScreen extends StatefulWidget {
+  final LatLng origin;
+  final LatLng destination;
+  final String categoryType;
+  final Map<String, dynamic> attributes;
 
-  const SearchingDriverScreen({
+  const OrderConfirmationScreen({
     Key? key,
-    required this.orderId,
+    required this.origin,
+    required this.destination,
+    required this.categoryType,
+    required this.attributes,
   }) : super(key: key);
 
   @override
-  _SearchingDriverScreenState createState() => _SearchingDriverScreenState();
+  _OrderConfirmationScreenState createState() => _OrderConfirmationScreenState();
 }
 
-class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
+class _OrderConfirmationScreenState extends State<OrderConfirmationScreen> {
   final NetworkService _networkService = NetworkService();
   List<LatLng> points = [];
   List<Marker> markers = [];
@@ -58,10 +65,12 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
     final List<ORSCoordinate> routeCoordinates =
         await client.directionsRouteCoordsGet(
       startCoordinate: ORSCoordinate(
-          latitude: widget.origin.latitude, longitude: widget.origin.longitude),
+          latitude: widget.origin.latitude, longitude: widget.origin.longitude
+      ),
       endCoordinate: ORSCoordinate(
           latitude: widget.destination.latitude,
-          longitude: widget.destination.longitude),
+          longitude: widget.destination.longitude
+      ),
       profileOverride: ORSProfile.drivingCar,
     );
 
@@ -114,7 +123,6 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
       ],
     );
   }
-
   Widget buildBottomMenu() {
     return Align(
       alignment: Alignment.bottomCenter,
@@ -151,59 +159,72 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
                       context,
                       widget.categoryType,
                       'Example Description',
+
                       '\u20AC${orderCost.toDouble().toStringAsFixed(2)}'); // u20AC é o simbolo do Euro
                 } else {
                   return Text('No data');
                 }
               },
             ),
-            SizedBox(height: 10), // Add some spacing
+            SizedBox(height: 10),  // Add some spacing
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
-                backgroundColor: Colors.black,
-                // cor do botão
+                backgroundColor: Colors.black, // cor do botão
                 shape: RoundedRectangleBorder(
-                  borderRadius:
-                      BorderRadius.circular(30.0), // bordas arredondadas
+                  borderRadius: BorderRadius.circular(30.0), // bordas arredondadas
                 ),
                 padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 textStyle: TextStyle(fontSize: 16),
               ),
               onPressed: () async {
-                Future<Order?> newOrder =
-                    _networkService.createOrder(createOrder(), context);
+
+                //quero contruir outro FutureBuilder aqui
+                FutureBuilder<Order?>(
+                  future: _networkService.createOrder(createOrder(), context),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return CircularProgressIndicator();
+                    } else if (snapshot.hasError) {
+                      return Text('Error: ${snapshot.error}');
+                    } else if (snapshot.hasData) {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (context) => SearchingDriverScreen(
+                            orderId: snapshot.data!.id ,
+                          ),
+                        ),
+                      );
+                      return SizedBox.shrink(); // Retorna um widget vazio após a navegação
+                    } else {
+                      return Text('No data');
+                    }
+                  },
+                );
+
+
+               /* Future<Order?> newOrder = _networkService.createOrder(createOrder(), context);
 
                 // Tenta enviar o pedido para o servidor
                 bool success = await newOrder != null;
 
+
                 if (success) {
-                  showDialog(
-                    context: context,
-                    builder: (context) {
-                      return AlertDialog(
-                        title: Text("Pedido Confirmado"),
-                        content: Text("Seu pedido foi confirmado com sucesso!"),
-                        actions: <Widget>[
-                          TextButton(
-                            child: Text("OK"),
-                            onPressed: () {
-                              Navigator.of(context).pop(); // Fecha o diálogo
-                              // Opcional: Navegar para outra página se necessário
-                            },
-                          ),
-                        ],
-                      );
-                    },
-                  );
+                  // navega para a tela de searching_driver_screen
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) => SearchingDriverScreen(
+                        orderId: newOrder!.id,
+                      ),
+                    ),);
+
                 } else {
                   showDialog(
                     context: context,
                     builder: (context) {
                       return AlertDialog(
                         title: Text("Erro"),
-                        content: Text(
-                            "Não foi possível confirmar seu pedido. Tente novamente."),
+                        content: Text("Não foi possível confirmar seu pedido. Tente novamente."),
                         actions: <Widget>[
                           TextButton(
                             child: Text("Tentar Novamente"),
@@ -215,10 +236,11 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
                       );
                     },
                   );
-                }
+                }*/
               },
               child: Text('Confirm Order'),
             ),
+
           ],
         ),
       ),
@@ -229,8 +251,7 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
     if (widget.categoryType.toUpperCase() == "MOTORIZED") {
       return Order(
         origin: '${widget.origin.latitude},${widget.origin.longitude}',
-        destination:
-            '${widget.destination.latitude},${widget.destination.longitude}',
+        destination: '${widget.destination.latitude},${widget.destination.longitude}',
         category: widget.categoryType.toUpperCase(),
         plate: widget.attributes['Plate'] ?? 'Unknown Plate',
         model: widget.attributes['Model'] ?? 'Unknown Model',
@@ -239,11 +260,9 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
     } else {
       return Order(
         origin: '${widget.origin.latitude},${widget.origin.longitude}',
-        destination:
-            '${widget.destination.latitude},${widget.destination.longitude}',
+        destination: '${widget.destination.latitude},${widget.destination.longitude}',
         category: widget.categoryType.toUpperCase(),
-        width: int.tryParse(widget.attributes['Width']!.toString()) ?? 0,
-        // Default value if parsing fails
+        width: int.tryParse(widget.attributes['Width']!.toString()) ?? 0, // Default value if parsing fails
         height: int.tryParse(widget.attributes['Height']!.toString()) ?? 0,
         length: int.tryParse(widget.attributes['Length']!.toString()) ?? 0,
         weight: double.tryParse(widget.attributes['Weight']!.toString()) ?? 0.0,
@@ -251,8 +270,9 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
     }
   }
 
-  Widget buildMenuItem(
-      BuildContext context, String category, String example, String price) {
+  Widget buildMenuItem(BuildContext context, String category, String example,
+      String price) {
+
     IconData selectedIcon;
 
     if (category.toUpperCase() == "MOTORIZED") {
@@ -272,11 +292,10 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
         title: Text(category, style: TextStyle(fontWeight: FontWeight.bold)),
         subtitle: Text(example),
         trailing: Text(price,
-            style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 17,
-                color: Colors.black)),
-        onTap: () {});
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black)),
+        onTap: () {
+        }
+    );
   }
+
 }
-*/

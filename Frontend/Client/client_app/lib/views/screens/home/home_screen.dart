@@ -3,8 +3,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:teste_2/views/screens/request_order/search_route_drawer.dart';
 import 'package:teste_2/views/screens/home/menu_drawer.dart';
-
+import 'package:permission_handler/permission_handler.dart';
 import '../../../themes/app_theme.dart';
+import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,262 +15,233 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  final defaultPoint = const LatLng(38.758072, -9.153414);
-  int _selectedIndex = 0;
+  LatLng _currentPosition = LatLng(38.758072, -9.153414);
+  final MapController _mapController = MapController();
   double _backgroundIconSize = 60;
   double _iconSize = 30;
   double _spaceBetweenIcons = 30;
-  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();  //preciso disso para abrir o drawer
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
-
-  void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+  @override
+  void initState() {
+    super.initState();
+    // TODO: implementar a permissão de localização, mostrando o icone de localização no mapa
+    _determinePosition();
   }
 
+  // metodo para determinar a posição atual do dispositivo
+  Future<LatLng?> _determinePosition() async {
+    try {
+      print('---2---_determinePosition');
+
+      bool serviceEnabled;
+      LocationPermission permission;
+
+      serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      if (!serviceEnabled) {
+        return Future.error('Location services are disabled.');
+      }
+
+      permission = await Geolocator.checkPermission();
+      if (permission == LocationPermission.denied) {
+        permission = await Geolocator.requestPermission();
+        if (permission == LocationPermission.denied) {
+          return Future.error('Location permissions are denied');
+        }
+      }
+
+      if (permission == LocationPermission.deniedForever) {
+        return Future.error(
+            'Location permissions are permanently denied, we cannot request permissions.');
+      }
+
+      Position position = await Geolocator.getCurrentPosition(); // Obtém a posição atual do dispositivo
+      _currentPosition = LatLng(position.latitude, position.longitude);
+    } catch (e) {}
+
+    return _currentPosition;
+  }
+
+  Marker _buildCurrentLocationMarker(LatLng currentLocation) {
+    return Marker(
+      width: 80.0,
+      height: 80.0,
+      point: currentLocation,
+      child: Icon(Icons.location_on, color: Colors.red),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
-      endDrawerEnableOpenDragGesture: false,  // This!
-
+      endDrawerEnableOpenDragGesture: false,
       body: Stack(
         children: [
-          FlutterMap(
-            options: MapOptions(
-              initialZoom: 16,
-              initialCenter: defaultPoint,
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-              ),
-            ],
-          ),
-          Positioned(
-            top: 35, // Posiciona o FloatingActionButton no topo da tela
-            left: 15, // Posiciona o FloatingActionButton à esquerda da tela
-            child: FloatingActionButton(
-              onPressed: () => _scaffoldKey.currentState?.openDrawer(),//abre o drawer
-              backgroundColor: backgroundColor, // Define a cor de fundo como branco
-              child: const Icon(Icons.menu, color: iconColor),
-            ),
-
-          ),
-
-
-
-          Positioned(
-            bottom: 35, // Posiciona o Card na parte inferior da tela
-            left: 0,
-            right: 0,
-            child: Container(
-              height: 130, // Define a altura do Card
-              child: Card(
-                // Substitui o Container por um Card
-                margin: EdgeInsets.symmetric(
-                    horizontal: MediaQuery.of(context).size.width *
-                        0.05), // Define a margem como 5% da largura da tela
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(
-                      30), // Adiciona bordas arredondadas ao Card
-                ),
-                child: Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      GestureDetector(
-                        onTap: () {
-                          showModalBottomSheet(
-                            context: context,
-                            isScrollControlled: true, // Define que o BottomSheet pode ser rolado
-                            builder: (context) => FractionallySizedBox(
-                              heightFactor: 0.95, // Define a altura do Drawer como 60% da altura total da tela
-                              child: SearchRoute(),
-                            ),
-                          );
-                        },
-                        child: Container(
-                          height: 40,
-                          width: double.infinity,
-                          child: Stack(
-                            children: [
-                              TextField(
-                                enabled: false,
-                                decoration: InputDecoration(
-                                  labelText: 'Where to?',
-                                  prefixIcon: const Icon(
-                                    Icons.search,
-                                    color: iconColor,
-                                  ),
-                                  filled: true,
-                                  fillColor: iconBackgroundColor,
-                                  border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(30),
-                                    borderSide: BorderSide.none,
-                                  ),
-                                ),
-                              ),
-                              Positioned(
-                                right: 5,
-                                // Alinha o botão à direita
-                                top: 5,
-                                // Posiciona no topo com 5 pixels de espaçamento para centralizar verticalmente
-                                bottom: 5,
-                                // Posiciona na base com 5 pixels de espaçamento para centralizar verticalmente
-                                left: 220,
-                                // ajusta o left para que seja responsivo
-
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    // Handle button press here
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16.0, vertical: 5.0),
-                                    // Padding interno do botão
-                                    shape:
-                                        StadiumBorder(), // Forma com bordas arredondadas longas, similar a um estádio
-                                  ),
-                                  child: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    // Garante que o Row não se expanda mais do que o necessário
-                                    children: [
-                                      Icon(
-                                        Icons.access_time_filled,
-                                        size: 16,
-                                        color: iconColor,
-                                      ),
-                                      // Ícone similar ao mostrado na imagem
-                                      SizedBox(width: 10),
-                                      // Espaço entre o ícone e o texto
-                                      Text('Now',
-                                          style: TextStyle(color: textColor)),
-                                      SizedBox(width: 2),
-                                      // Texto do botão
-                                      Icon(Icons.arrow_drop_down,
-                                          size: 18, color: iconColor),
-                                      // Ícone de seta para baixo
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      SizedBox(height: 10),
-                      Container(
-                        height: kToolbarHeight,
-                        child: ListView(
-                          scrollDirection: Axis.horizontal,
-                          // Define a direção do scroll como horizontal
-                          children: [
-                            Container(
-                              width: _backgroundIconSize,
-                              // Define a largura do Container como um quarto da largura da tela
-                              decoration: BoxDecoration(
-                                color: iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: IconButton(
-                                iconSize: _iconSize,
-                                icon: Icon(Icons.history),
-                                color: iconColor,
-                                onPressed: () {
-                                  _onItemTapped(0);
-                                },
-                              ),
-                            ),
-                            SizedBox(width: _spaceBetweenIcons),
-                            // Adiciona um espaço de 10 pixels
-                            Container(
-                              width: _backgroundIconSize,
-                              // Define a largura do Container como um quarto da largura da tela
-                              decoration: BoxDecoration(
-                                color: iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: IconButton(
-                                iconSize: _iconSize,
-                                icon: Icon(Icons.star),
-                                color: iconColor,
-                                onPressed: () {
-                                  _onItemTapped(0);
-                                },
-                              ),
-                            ),
-                            SizedBox(width: _spaceBetweenIcons),
-                            // Adiciona um espaço de 10 pixels
-                            Container(
-                              width: _backgroundIconSize,
-                              // Define a largura do Container como um quarto da largura da tela
-                              decoration: BoxDecoration(
-                                color: iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: IconButton(
-                                iconSize: _iconSize,
-                                icon: Icon(Icons.notifications),
-                                color: iconColor,
-                                onPressed: () {
-                                  _onItemTapped(1);
-                                },
-                              ),
-                            ),
-                            SizedBox(width: _spaceBetweenIcons),
-                            // Adiciona um espaço de 10 pixels
-                            Container(
-                              width: _backgroundIconSize,
-                              // Define a largura do Container como um quarto da largura da tela
-                              decoration: BoxDecoration(
-                                color: iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: IconButton(
-                                iconSize: _iconSize,
-                                icon: Icon(Icons.person),
-                                color: iconColor,
-                                onPressed: () {
-                                  _onItemTapped(2);
-                                },
-                              ),
-                            ),
-                            SizedBox(width: _spaceBetweenIcons),
-                            // Adiciona um espaço de 10 pixels
-                            Container(
-                              width: _backgroundIconSize,
-                              // Define a largura do Container como um quarto da largura da tela
-                              decoration: BoxDecoration(
-                                color: iconBackgroundColor,
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              child: IconButton(
-                                iconSize: _iconSize,
-                                icon: Icon(Icons.help_outline),
-                                color: iconColor,
-                                onPressed: () {
-                                  _onItemTapped(3);
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
+          _buildMap(),
+          _buildTopButton(context),
+          _buildBottomCard(context),
         ],
       ),
-      drawer: const MenuDrawer(), // Adiciona o CustomDrawer ao Scaffold
+      drawer: const MenuDrawer(),
+    );
+  }
 
+  Widget _buildMap() {
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: _currentPosition,
+        initialZoom: 16,
+
+      ),
+      children: [
+        TileLayer(
+          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+          userAgentPackageName: 'dev.fleaflet.flutter_map.example',
+        ),
+        MarkerLayer(
+          markers: [_buildCurrentLocationMarker(_currentPosition)],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTopButton(BuildContext context) {
+    return Positioned(
+      top: 35,
+      left: 15,
+      child: FloatingActionButton(
+        onPressed: () => _scaffoldKey.currentState?.openDrawer(),
+        backgroundColor: backgroundColor,
+        child: const Icon(Icons.menu, color: iconColor),
+      ),
+    );
+  }
+
+  Widget _buildBottomCard(BuildContext context) {
+    return Positioned(
+      bottom: 35,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: 130,
+        child: Card(
+          margin: EdgeInsets.symmetric(
+            horizontal: MediaQuery.of(context).size.width * 0.05,
+          ),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(30),
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                _buildSearchField(context),
+                SizedBox(height: 10),
+                _buildIconRow(),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSearchField(BuildContext context) {
+    return GestureDetector(
+      onTap: () {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => FractionallySizedBox(
+            heightFactor: 0.95,
+            child: SearchRoute(),
+          ),
+        );
+      },
+      child: Container(
+        height: 40,
+        width: double.infinity,
+        child: Stack(
+          children: [
+            TextField(
+              enabled: false,
+              decoration: InputDecoration(
+                labelText: 'Where to?',
+                prefixIcon: const Icon(Icons.search, color: iconColor),
+                filled: true,
+                fillColor: iconBackgroundColor,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(30),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+            Positioned(
+              right: 5,
+              top: 5,
+              bottom: 5,
+              left: 220,
+              child: ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0, vertical: 5.0),
+                  shape: StadiumBorder(),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.access_time_filled, size: 16, color: iconColor),
+                    SizedBox(width: 10),
+                    Text('Now', style: TextStyle(color: textColor)),
+                    SizedBox(width: 2),
+                    Icon(Icons.arrow_drop_down, size: 18, color: iconColor),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildIconRow() {
+    return Container(
+      height: kToolbarHeight,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        children: [
+          _buildIconButton(Icons.history, 0),
+          SizedBox(width: _spaceBetweenIcons),
+          _buildIconButton(Icons.star, 0),
+          SizedBox(width: _spaceBetweenIcons),
+          _buildIconButton(Icons.notifications, 1),
+          SizedBox(width: _spaceBetweenIcons),
+          _buildIconButton(Icons.person, 2),
+          SizedBox(width: _spaceBetweenIcons),
+          _buildIconButton(Icons.help_outline, 3),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIconButton(IconData icon, int index) {
+    return Container(
+      width: _backgroundIconSize,
+      decoration: BoxDecoration(
+        color: iconBackgroundColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: IconButton(
+        iconSize: _iconSize,
+        icon: Icon(icon),
+        color: iconColor,
+        onPressed: () {},
+      ),
     );
   }
 }

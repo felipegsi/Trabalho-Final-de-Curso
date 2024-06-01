@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:teste_2/views/screens/request_order/route_map_screen.dart';
+import 'package:teste_2/views/screens/request_order/order_confirmation_screen.dart';
 
 class CheckMeasures extends StatefulWidget {
   final LatLng origin;
@@ -139,7 +139,7 @@ class _CheckMeasuresState extends State<CheckMeasures> {
             });
 
             // Navega para RouteMapScreen passando os valores dos atributos
-            Navigator.push(context, MaterialPageRoute(builder: (context) => RouteMapScreen(
+            Navigator.push(context, MaterialPageRoute(builder: (context) => OrderConfirmationScreen(
               origin: widget.origin,
               destination: widget.destination,
               categoryType: _categoryType,

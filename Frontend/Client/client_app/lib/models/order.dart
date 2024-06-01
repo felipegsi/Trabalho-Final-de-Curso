@@ -1,7 +1,10 @@
 // Dentro de /lib/models/order.dart
+import 'dart:ffi';
+
 import 'package:decimal/decimal.dart';
 
 class Order {
+  final Long? id; // pode ser nulo quando ainda estiver fazendo o pedido
   final String origin;
   final String destination;
   final String? description;
@@ -24,6 +27,7 @@ class Order {
 
 
   Order({
+    this.id,
     required this.origin,
     required this.destination,
     this.description,
@@ -46,6 +50,7 @@ class Order {
   // Adiciona o método toJson
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'origin': origin,
       'destination': destination,
       'description': description,
@@ -63,6 +68,7 @@ class Order {
 
   factory Order.fromJson(Map<String, dynamic> json) {
     return Order(
+      id: json['id'],
       origin: json['origin'],
       destination: json['destination'],
       description: json['description'],

@@ -1,9 +1,11 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../models/client.dart';
+import '../models/driver.dart';
 import '../models/order.dart';
 import '../models/location.dart';
 import 'package:decimal/decimal.dart';
@@ -269,7 +271,38 @@ class NetworkService {
     }
   }
 
+  // Função para atribuir um pedido a um motorista
+  Future<Driver> assignOrderToDriver(Long? orderId, BuildContext context) async {
+    // Recupera o token do armazenamento seguro
+    String? token = await storage.read(key: 'token');
 
+    // Se o token for nulo, exibe um diálogo de sessão expirada e retorna nulo
+    if (token == null) {
+      showExpiredSessionDialog(context);
+      throw Exception('No token found');
+    }
+
+    // Cria a URL para a rota de atribuição de pedido a motorista
+    final url = Uri.parse('$baseUrl/assignOrderToDriver');
+
+    // Envia uma requisição POST para a URL com o orderId no corpo da requisição e o token no cabeçalho de autorização
+    final response = await http.post(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+      body: jsonEncode({'orderId': orderId}),
+    );
+
+    // Se o código de status da resposta for 200, converte o corpo da resposta para Driver e retorna
+    if (response.statusCode == 200) {
+      return Driver.fromJson(jsonDecode(response.body));
+    } else {
+      // Se o código de status da resposta não for 200, lança uma exceção com a mensagem de erro
+      throw Exception('Failed to assign order to driver: ${response.body}');
+    }
+  }
 
 
 }
