@@ -46,7 +46,9 @@ dependencies:
   flutter_secure_storage: ^9.0.0
   font_awesome_flutter: ^10.7.0
   image_picker: ^1.1.0
-
+  stomp_dart_client: ^1.0.3
+  pretty_http_logger: ^1.0.3
+  fluttertoast: ^8.2.6
 
 
 dev_dependencies:

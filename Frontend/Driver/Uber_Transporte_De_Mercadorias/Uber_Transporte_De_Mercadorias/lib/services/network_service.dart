@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -36,6 +37,68 @@ class NetworkService {
       return true;
     } else {
       return false;
+    }
+  }
+
+  void sendMessage(String message) async {
+    String? token = await storage.read(key: 'token');
+    if (token == null) {
+      print('No token found');
+      return;
+    }
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8080/api/notifications'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: message,
+    );
+
+    if (response.statusCode == 200) {
+      print('Mensagem enviada com sucesso');
+    } else {
+      print('Falha ao enviar mensagem: ${response.statusCode}');
+    }
+  }
+
+  void sendPrivateMessage(String userId, String message) async {
+    String? token = await storage.read(key: 'token');
+    if (token == null) {
+      print('No token found');
+      return;
+    }
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8080/api/notifications/user?userId=$userId'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: message,
+    );
+
+    if (response.statusCode == 200) {
+      print('Mensagem privada enviada com sucesso');
+    } else {
+      print('Falha ao enviar mensagem privada: ${response.statusCode}');
+    }
+  }
+
+
+  Future<String> getDriverIdFromToken() async {
+    String? token = await storage.read(key: 'token');
+    if (token == null) {
+      throw Exception('No token found');
+    }
+    final url = Uri.parse('$baseUrl/getDriverId');
+    final response = await http.get(url, headers: {
+      'Content-Type': 'application/json',
+      'Authorization': 'Bearer $token', // Adicione 'Bearer ' antes do token
+    });
+    if (response.statusCode == 200) {
+      return response.body;
+    } else {
+      throw Exception('Failed to load driver id');
     }
   }
 
@@ -121,8 +184,7 @@ class NetworkService {
   }
 
   Future<bool> setDriverOnline(String location) async {
-    SharedPreferences prefs = await SharedPreferences.getInstance();
-    String? token = prefs.getString('token');
+    String? token = await storage.read(key: 'token');
     if (token == null) {
       print('No token found');
       return false;
@@ -149,7 +211,7 @@ class NetworkService {
 
   // Função para definir o motorista como offline
   Future<bool> setDriverOffline() async {
-    String? token = await storage.read(key:'token');
+    String? token = await storage.read(key: 'token');
     if (token == null) {
       print('No token found');
       return false;

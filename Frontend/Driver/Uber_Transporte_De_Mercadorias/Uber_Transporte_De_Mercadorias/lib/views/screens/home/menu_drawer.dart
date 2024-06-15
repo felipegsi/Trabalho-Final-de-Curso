@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_proj/views/screens/home/order_screen.dart';
 
 import '../../../services/network_service.dart';
 import '../../../models/driver.dart';
@@ -121,6 +122,18 @@ class MenuDrawer extends StatelessWidget {
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
+                ListTile(
+                  leading: Icon(Icons.border_all),
+                  title: Text('Teste receber pedido'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen()));
+                    // Adicionar navegação ou função de clique aqui
+                  },
+                ),
+
+
+
+
               ],
             ),
           );
