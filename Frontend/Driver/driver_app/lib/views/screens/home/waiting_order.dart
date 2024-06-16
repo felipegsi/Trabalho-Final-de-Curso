@@ -13,6 +13,7 @@ class WaitingOrderScreen extends StatefulWidget {
   State<WaitingOrderScreen> createState() => _WaitingOrderScreenState();
 }
 
+
 class _WaitingOrderScreenState extends State<WaitingOrderScreen> {
   StompClient? stompClient;
   String receivedMessage = "";
