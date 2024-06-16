@@ -44,4 +44,17 @@ public class Driver extends User {
         super(name, email, password, phoneNumber, taxPayerNumber, street, city, postalCode);
         this.birthdate = birthdate;
     }
+
+    @Override
+    public String toString() {
+        return "Driver{" +
+                "user=" + super.toString() +
+                ", salary=" + salary +
+                ", isOnline=" + isOnline +
+                ", isBusy=" + isBusy +
+                ", vehicleId=" + vehicle.getId() +
+                ", location='" + location + '\'' +
+                ", birthdate=" + birthdate +
+                '}';
+    }
 }

@@ -271,6 +271,29 @@ class NetworkService {
     }
   }
 
+  void sendMessage(String message) async {
+    String? token = await storage.read(key: 'token');
+    if (token == null) {
+      print('No token found');
+      return;
+    }
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8080/api/notifications'),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Authorization': 'Bearer $token',
+      },
+      body: message,
+    );
+
+    if (response.statusCode == 200) {
+      print('Mensagem enviada com sucesso');
+    } else {
+      print('Falha ao enviar mensagem: ${response.statusCode}');
+    }
+  }
+
+
   // Função para atribuir um pedido a um motorista
   Future<Driver> assignOrderToDriver(Long? orderId, BuildContext context) async {
     // Recupera o token do armazenamento seguro

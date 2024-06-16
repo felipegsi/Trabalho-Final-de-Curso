@@ -8,22 +8,29 @@ import java.util.concurrent.*;
 
 @Service
 public class ResponseStorageImpl implements ResponseStorage {
-    private final Map<Long, CompletableFuture<Boolean>> responses = new ConcurrentHashMap<>();
 
-    public void saveResponse(Long driverId, Boolean response) {
-        CompletableFuture<Boolean> future = responses.getOrDefault(driverId, new CompletableFuture<>());
+    private final Map<Long, Map<Long, CompletableFuture<Boolean>>> responses = new ConcurrentHashMap<>();
+
+    @Override
+    public void saveResponse(Long driverId, Long orderId, Boolean response) {
+        Map<Long, CompletableFuture<Boolean>> driverResponses = responses.computeIfAbsent(driverId, k -> new ConcurrentHashMap<>());
+        CompletableFuture<Boolean> future = driverResponses.computeIfAbsent(orderId, k -> new CompletableFuture<>());
         future.complete(response);
-        responses.put(driverId, future);
     }
 
-    public Boolean waitForResponse(Long driverId) {
-        CompletableFuture<Boolean> future = responses.computeIfAbsent(driverId, k -> new CompletableFuture<>());
+    @Override
+    public Boolean waitForResponse(Long driverId, Long orderId, Long timeoutInSeconds) throws InterruptedException, ExecutionException, TimeoutException {
+        Map<Long, CompletableFuture<Boolean>> driverResponses = responses.computeIfAbsent(driverId, k -> new ConcurrentHashMap<>());
+        CompletableFuture<Boolean> future = driverResponses.computeIfAbsent(orderId, k -> new CompletableFuture<>());
         try {
-            return future.get(30, TimeUnit.SECONDS); // Espera por até 30 segundos pela resposta
+            return future.get(timeoutInSeconds, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            return null; // Trata exceções conforme necessário
+            throw e;
         } finally {
-            responses.remove(driverId); // Limpa a resposta após o uso
+            driverResponses.remove(orderId);
+            if (driverResponses.isEmpty()) {
+                responses.remove(driverId);
+            }
         }
     }
 }

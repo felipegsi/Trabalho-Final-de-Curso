@@ -57,7 +57,7 @@ public class DriverController {
             return ResponseEntity.ok(savedDriver);
         } catch (Exception e) {
             // Em caso de outros erros, retorna uma resposta de InternalServerError
-            return ResponseEntity.internalServerError().body("Error registering driver: " + e.getMessage());
+            throw new BusinessException("Driver already exists!");
         }
     }
     // This method handles driver authentication with a POST request to "/login".
@@ -95,7 +95,7 @@ public class DriverController {
 
 
     // This method handles accepting an order by a driver.
-    @PostMapping("/accept-order") // Handles POST requests to "/accept-order".teste
+ /*   @PostMapping("/accept-order") // Handles POST requests to "/accept-order".teste
     public ResponseEntity<?> acceptOrder(@RequestBody OrderDto acceptOrderRequest,
                                          @RequestHeader("Authorization") String token) {
         try {
@@ -109,7 +109,7 @@ public class DriverController {
             // Handles exceptions during order acceptance.
             return ResponseEntity.badRequest().body("Error accepting order: " + e.getMessage());
         }
-    }
+    }*/
 
     // This method sets a driver's status to online.
     @PutMapping("/online") // Handles PUT requests to "/online".
@@ -201,6 +201,14 @@ public class DriverController {
         return new ResponseEntity<>(driverDto, HttpStatus.OK); // Returns the driver profile with an OK status.
     }
 
+    // This GET method retrieves the driver profile based on the provided token.
+    @GetMapping("/getDriverId")
+    public ResponseEntity<Long> getDriverId(
+            @RequestHeader("Authorization") String token) { // The token is used to authenticate and identify the driver.
+        Long driverId = validateTokenAndGetDriverId(token); // Validates the token and retrieves the driver ID.
+        return new ResponseEntity<>(driverId, HttpStatus.OK); // Returns the driver profile with an OK status.
+    }
+
     // This POST method allows the driver to edit their profile.
     @PostMapping("/editProfile")
     public ResponseEntity<?> editProfile(
@@ -234,6 +242,16 @@ public class DriverController {
         return new ResponseEntity<>(HttpStatus.OK); // Returns an OK status upon successful password change.
     }
 
+    // verify if the token is valid
+    @GetMapping("/isValidToken")
+    public ResponseEntity<Boolean> isValidToken(@RequestHeader("Authorization") String token) {
+        try {
+            validateTokenAndGetDriverId(token);
+            return new ResponseEntity<>(true, HttpStatus.OK);
+        } catch (BusinessException e) {
+            return new ResponseEntity<>(false, HttpStatus.OK);
+        }
+    }
 
     // This private method validates the JWT token and extracts the driver ID from it.
     private Long validateTokenAndGetDriverId(String token) {

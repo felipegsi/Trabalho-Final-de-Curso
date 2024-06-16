@@ -15,14 +15,10 @@ public interface OrderService {
 
     List<BigDecimal> estimateAllCategoryOrderCost(String origin, String destination);
 
-    // funçao que devolve uma lista de motoristas proximos a uma determinada localizaçao
-    List<Driver> findAvailableDrivers(String location);
 
     public Order saveOrder(OrderDto orderDto, Long clientId);
 
     public List<Order> getClientOrderHistory(Long clientId);
-
-    Boolean acceptOrder(Long orderId, Long driverId) throws BusinessException;
 
     @Transactional
     void confirmPickUp(Long orderId, Long driverId) throws Exception;

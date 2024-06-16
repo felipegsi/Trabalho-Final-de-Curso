@@ -1,21 +1,26 @@
-/*import 'package:decimal/decimal.dart';
+import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:open_route_service/open_route_service.dart';
-import 'package:teste_2/views/screens/home/check_measures.dart';
-
-import '../../../models/location.dart';
 import '../../../models/order.dart';
 import '../../../services/network_service.dart';
+import '../order_confirmed/searching_driver_screen.dart';
 
-// Define uma tela de mapa para exibir rotas entre dois pontos geográficos.
 class OrderCostScreen extends StatefulWidget {
-  final Order order; // Pedido para o qual os custos são calculados.
+  final LatLng origin;
+  final LatLng destination;
+  final String categoryType;
+  final Map<String, dynamic> attributes;
 
-  // Construtor da classe com o pedido necessário.
-  const OrderCostScreen({Key? key, required this.order}) : super(key: key);
+  const OrderCostScreen({
+    Key? key,
+    required this.origin,
+    required this.destination,
+    required this.categoryType,
+    required this.attributes,
+  }) : super(key: key);
 
   @override
   _OrderCostScreenState createState() => _OrderCostScreenState();
@@ -23,243 +28,246 @@ class OrderCostScreen extends StatefulWidget {
 
 class _OrderCostScreenState extends State<OrderCostScreen> {
   final NetworkService _networkService = NetworkService();
-  late String transportType; // Define o tipo de transporte como 'Small'.
-
-
-  // Lista para armazenar os custos de cada categoria de pedido
-  List<Decimal> ordersCosts = [];
-
-  // Lista para armazenar pontos da rota.
   List<LatLng> points = [];
-
-  // Lista para armazenar marcadores no mapa. Controlador para manipulações programáticas do mapa.
   List<Marker> markers = [];
-
   final MapController mapController = MapController();
-
-  bool isLoading =
-  false; // Indicador de estado de carregamento para controle UI.
+  bool isLoading = false;
+  Decimal orderCost = Decimal.zero;
 
   @override
   void initState() {
     super.initState();
-
-    // Adiciona marcadores no mapa para os pontos de origem e destino ao iniciar o widget.
-    markers.add(
-      Marker(
-        point: stringToLatLng(widget.order.origin),
-        // Marcador vermelho para a origem.
-        child: Icon(Icons.location_on, color: Colors.red),
-      ),
-    );
-    markers.add(
-      Marker(
-        point: stringToLatLng(widget.order.destination),
-        // Marcador azul para o destino.
-        child: Icon(Icons.location_on, color: Colors.blue),
-      ),
-    );
-    // Inicia a obtenção da rota entre origem e destino.
+    initializeMapMarkers();
     getRoute();
   }
 
-  // Função assíncrona para calcular a rota entre dois pontos usando OpenRouteService API.
-  Future<void> getRoute() async {
-    setState(() {
-      isLoading = true; // Ativa o indicador de carregamento.
-    });
+  void initializeMapMarkers() {
+    markers.addAll([
+      Marker(
+        point: widget.origin,
+        child: Icon(Icons.location_on, color: Colors.red),
+      ),
+      Marker(
+        point: widget.destination,
+        child: Icon(Icons.location_on, color: Colors.blue),
+      ),
+    ]);
+  }
 
-    // Cria uma instância do cliente da OpenRouteService com uma chave API.
+  Future<void> getRoute() async {
+    setState(() => isLoading = true);
+
     final OpenRouteService client = OpenRouteService(
       apiKey: '5b3ce3597851110001cf6248b8fc3d76941643ee9de00a23820316b7',
     );
 
-    // Realiza a solicitação para obter as coordenadas da rota entre os pontos definidos.
     final List<ORSCoordinate> routeCoordinates =
-    await client.directionsRouteCoordsGet(
+        await client.directionsRouteCoordsGet(
       startCoordinate: ORSCoordinate(
-          latitude: stringToLatLng(widget.order.origin).latitude,
-          longitude: stringToLatLng(widget.order.origin).longitude),
+          latitude: widget.origin.latitude, longitude: widget.origin.longitude
+      ),
       endCoordinate: ORSCoordinate(
-          latitude: stringToLatLng(widget.order.destination).latitude,
-          longitude: stringToLatLng(widget.order.destination).latitude),
+          latitude: widget.destination.latitude,
+          longitude: widget.destination.longitude
+      ),
       profileOverride: ORSProfile.drivingCar,
     );
 
-    // Atualiza o estado com os pontos da rota e desativa o indicador de carregamento.
     setState(() {
       points = routeCoordinates
           .map((coord) => LatLng(coord.latitude, coord.longitude))
           .toList();
       isLoading = false;
-      // Ajusta o mapa para incluir ambos os marcadores com um zoom adequado.
-      if (markers.length == 2) {
-        LatLngBounds bounds =
-        LatLngBounds.fromPoints([stringToLatLng(widget.order.origin),
-            stringToLatLng
-        (widget.order.destination)]);
-      mapController.fitBounds(bounds,
-      options: FitBoundsOptions(padding: EdgeInsets.all(50.0)
-      )
-      );
-    }
-
+      adjustMapZoom();
     });
   }
 
-  // funçao que convert a string em LatLng
-  LatLng stringToLatLng(String location) {
-    List<String> coordinates = location.split(',');
-    return LatLng(double.parse(coordinates[0]), double.parse(coordinates[1]));
+  void adjustMapZoom() {
+    if (markers.length == 2) {
+      LatLngBounds bounds =
+          LatLngBounds.fromPoints([widget.origin, widget.destination]);
+      mapController.fitBounds(bounds,
+          options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+    }
   }
-
-  // funçao que convert a string em
 
   @override
   Widget build(BuildContext context) {
-    // Constrói a interface do usuário do mapa com camadas de mapa, marcadores e rotas.
     return Scaffold(
       appBar: AppBar(
         title: Text('Map Screen'),
       ),
       body: Stack(
         children: [
-          FlutterMap(
-            mapController: mapController,
-            options: MapOptions(
-              initialCenter: stringToLatLng(widget.order.origin),
-              // Define o centro inicial do mapa.
-              initialZoom: 13.0, // Define o zoom inicial do mapa.
-            ),
-            children: [
-              TileLayer(
-                urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-                userAgentPackageName: 'YourAppName/1.0',
-              ),
-              MarkerLayer(markers: markers),
-              PolylineLayer(polylines: [
-                Polyline(points: points, strokeWidth: 4.0, color: Colors.blue),
-              ]),
-            ],
-          ),
-          // Mostra um indicador de progresso enquanto a rota está sendo carregada.
+          buildMap(),
           if (isLoading) Center(child: CircularProgressIndicator()),
-          // Adiciona o menu sobre o mapa.
-          Align(
-            alignment: Alignment.bottomCenter,
-            child: Container(
-              margin: EdgeInsets.all(20.0),
-              padding: EdgeInsets.symmetric(vertical: 20.0),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(15.0),
-                boxShadow: const [
-                  BoxShadow(
-                    color: Colors.black26,
-                    blurRadius: 10.0,
-                    spreadRadius: 1.0,
-                    offset: Offset(0.0, 0.0),
-                  ),
-                ],
-              ),
-              child: FutureBuilder<Decimal>(
-                future: _networkService.estimateOrderCost(widget.order),
-                builder: (BuildContext context,
-                    AsyncSnapshot<Decimal> snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
-                    return Text('Error: ${snapshot.error}');
-                  } else {
-                     Text('Estimated cost: ${snapshot.data}');
-                     return ListView(
-                      shrinkWrap: true,
-                      // Para garantir que o ListView ocupe apenas o espaço necessário.
-                      children: [
-                        _buildMenuItem(
-                            context,
-                            'Small',
-                            'Canetas, cartas, smartphone',
-                            '€${ordersCosts[0]}',
-                            FontAwesomeIcons.motorcycle),
-                        _buildMenuItem(
-                            context,
-                            'Medium',
-                            'Micro-ondas, ventilador, panela',
-                            '€${ordersCosts[1]}',
-                            FontAwesomeIcons.car),
-                        _buildMenuItem(
-                            context,
-                            'Large',
-                            'Frigorífico, fogão, cama',
-                            '€${ordersCosts[2]}',
-                            FontAwesomeIcons.truck),
-                        _buildMenuItem(
-                            context,
-                            'Motorized',
-                            'Carro, empilhador, carcaça',
-                            '€${ordersCosts[3]}',
-                            FontAwesomeIcons.trailer),
-
-                        // Adicione mais itens conforme necessário.
-                      ],
-                    );
-                  }
-                },
-              ),
-            ),
-          ),
+          buildBottomMenu(),
         ],
       ),
     );
   }
 
-// Função auxiliar para construir um item do menu. +++ adicionar mais um parametro "context" do builder para saber qual pagina ira mandar
-  Widget _buildMenuItem(BuildContext context, String category, String example,
-      String price, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, size: 34.0),
-      // Define o ícone à esquerda.
-      title: Text(category, style: TextStyle(fontWeight: FontWeight.bold)),
-      // O título do item.
-      subtitle: Text(example),
-      // O subtítulo do item.
-      trailing: Text(price,
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17)),
-      // O preço à direita.
-      onTap: () {
-        //tirar o if e enviar para uma unica pagina que possui um parametro que ira definir qual categoria ira ser mostrada
-        /* if(category == 'Small'){
-          Navigator.of(context).pushNamed('/small');
-        } else if(category == 'Medium'){
-          Navigator.of(context).pushNamed('/medium');
-        } else if(category == 'Large'){
-          Navigator.of(context).pushNamed('/large');
-        } else if(category == 'Motorized'){
-          Navigator.of(context).pushNamed('/motorized');
-        }*/
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) =>
-                CheckMeasures(
-                  /*
-              *  // tipo de transporte, SMALL, MEDIUM, LARGE
-  final String transportType;
-  final LatLng origin;
-  final LatLng destination;
-              * */
-                  categoryType: category,
-                  origin: stringToLatLng(widget.order.origin),
-                  destination: stringToLatLng(widget.order.destination),
+  Widget buildMap() {
+    return FlutterMap(
+      mapController: mapController,
+      options: MapOptions(initialCenter: widget.origin, initialZoom: 13.0),
+      children: [
+        TileLayer(
+            urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+            userAgentPackageName: 'YourAppName/1.0'),
+        MarkerLayer(markers: markers),
+        PolylineLayer(polylines: [
+          Polyline(points: points, strokeWidth: 4.0, color: Colors.blue)
+        ]),
+      ],
+    );
+  }
+  Widget buildBottomMenu() {
+    return Align(
+      alignment: Alignment.bottomCenter,
+      child: Container(
+        margin: EdgeInsets.all(20.0),
+        padding: EdgeInsets.symmetric(vertical: 20.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(15.0),
+          boxShadow: const [
+            BoxShadow(
+                color: Colors.black26,
+                blurRadius: 10.0,
+                spreadRadius: 1.0,
+                offset: Offset(0.0, 0.0))
+          ],
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Use min to fit content
+          children: <Widget>[
+            FutureBuilder<Decimal>(
+              future: _networkService.estimateOrderCost(createOrder(), context),
+              builder: (context, snapshot) {
+                print("snapshot.data: ");
+                print(snapshot.data);
 
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return CircularProgressIndicator();
+                } else if (snapshot.hasError) {
+                  return Text('Error: ${snapshot.error}');
+                } else if (snapshot.hasData) {
+                  orderCost = snapshot.data!;
+                  return buildMenuItem(
+                      context,
+                      widget.categoryType,
+                      'Example Description',
+
+                      '\u20AC${orderCost.toDouble().toStringAsFixed(2)}'); // u20AC é o simbolo do Euro
+                } else {
+                  return Text('No data');
+                }
+              },
+            ),
+            SizedBox(height: 10),  // Add some spacing
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.black, // cor do botão
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(30.0), // bordas arredondadas
                 ),
-          ),
-        );
-        // Adicione ação ao tocar no item, se necessário.
-      },
+                padding: EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                textStyle: TextStyle(fontSize: 16),
+              ),
+              onPressed: () async {
+                try {
+                  Order? newOrder = await _networkService.createOrder(createOrder(), context);
+                  if (newOrder != null) {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => SearchingDriverScreen(
+                          //orderId: newOrder.id,
+                        ),
+                      ),
+                    );
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: Text("Erro"),
+                          content: Text("Não foi possível confirmar seu pedido. Tente novamente."),
+                          actions: <Widget>[
+                            TextButton(
+                              child: Text("Tentar Novamente"),
+                              onPressed: () {
+                                Navigator.of(context).pop(); // Fecha o diálogo
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                } catch (error) {
+                  // Trate o erro aqui
+                }
+              },
+              child: Text('Confirm Order'),
+            ),
+
+          ],
+        ),
+      ),
+    );
+  }
+
+  Order createOrder() {
+    if (widget.categoryType.toUpperCase() == "MOTORIZED") {
+      return Order(
+        origin: '${widget.origin.latitude},${widget.origin.longitude}',
+        destination: '${widget.destination.latitude},${widget.destination.longitude}',
+        category: widget.categoryType.toUpperCase(),
+        plate: widget.attributes['Plate'] ?? 'Unknown Plate',
+        model: widget.attributes['Model'] ?? 'Unknown Model',
+        brand: widget.attributes['Brand'] ?? 'Unknown Brand',
+      );
+    } else {
+      return Order(
+        origin: '${widget.origin.latitude},${widget.origin.longitude}',
+        destination: '${widget.destination.latitude},${widget.destination.longitude}',
+        category: widget.categoryType.toUpperCase(),
+        width: int.tryParse(widget.attributes['Width']!.toString()) ?? 0, // Default value if parsing fails
+        height: int.tryParse(widget.attributes['Height']!.toString()) ?? 0,
+        length: int.tryParse(widget.attributes['Length']!.toString()) ?? 0,
+        weight: double.tryParse(widget.attributes['Weight']!.toString()) ?? 0.0,
+      );
+    }
+  }
+
+  Widget buildMenuItem(BuildContext context, String category, String example,
+      String price) {
+
+    IconData selectedIcon;
+
+    if (category.toUpperCase() == "MOTORIZED") {
+      selectedIcon = FontAwesomeIcons.trailer;
+    } else if (category.toUpperCase() == "SMALL") {
+      selectedIcon = FontAwesomeIcons.motorcycle;
+    } else if (category.toUpperCase() == "MEDIUM") {
+      selectedIcon = FontAwesomeIcons.car;
+    } else if (category.toUpperCase() == "LARGE") {
+      selectedIcon = FontAwesomeIcons.caravan;
+    } else {
+      selectedIcon = FontAwesomeIcons.question;
+    }
+
+    return ListTile(
+        leading: Icon(selectedIcon, size: 34.0),
+        title: Text(category, style: TextStyle(fontWeight: FontWeight.bold)),
+        subtitle: Text(example),
+        trailing: Text(price,
+            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black)),
+        onTap: () {
+        }
     );
   }
 
 }
-*/

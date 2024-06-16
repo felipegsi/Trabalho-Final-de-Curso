@@ -20,27 +20,26 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfiguration {
 
     @Autowired
-    private  SecurityFilter securityFilter;
+    private SecurityFilter securityFilter;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity httpSecurity) throws Exception {
         return httpSecurity
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(authoriza -> authoriza
-                        //.requestMatchers(HttpMethod.GET, "/usuarios/admin").hasRole("ADMIN")
-                        //.requestMatchers(HttpMethod.GET, "/usuarios/user").hasRole("USER")
-                        //so altera AQUI
-
+                .authorizeHttpRequests(authorize -> authorize
                         .requestMatchers(HttpMethod.POST, "/client/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/client/login").permitAll()
                         .requestMatchers(HttpMethod.POST, "/driver/register").permitAll()
                         .requestMatchers(HttpMethod.POST, "/driver/login").permitAll()
-
-                        .anyRequest().authenticated() //qualquer outra requisição precisa de autenticação e sera aceita se o token for valido
+                        .requestMatchers(HttpMethod.GET, "/ws-endpoint/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/ws/**").permitAll() // Adicionado
+                        .requestMatchers("/error").permitAll() // Adicionado
+                        .requestMatchers(HttpMethod.POST, "/app/broadcast").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/notifications").authenticated()
+                        .anyRequest().authenticated()
                 )
                 .addFilterBefore(securityFilter, UsernamePasswordAuthenticationFilter.class)
-                // .addFilterBefore(driverSecurityFilter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -50,9 +49,7 @@ public class SecurityConfiguration {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration)
-            throws Exception {
+    public AuthenticationManager authenticationManager(AuthenticationConfiguration authenticationConfiguration) throws Exception {
         return authenticationConfiguration.getAuthenticationManager();
     }
-
 }

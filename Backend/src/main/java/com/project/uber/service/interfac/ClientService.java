@@ -9,19 +9,24 @@ import java.util.List;
 
 public interface ClientService {
 
-    public ClientDto saveClient(ClientDto clientDto);
 
-    public void deleteClient(Long clientId);
+    // This method is used to save a new client. It first checks if a client with the same email already exists.
+    // If the client already exists, it throws a BusinessException. Otherwise, it saves the new client in the database.
+    ClientDto saveClient(Client newClient);
+
+    void deleteClient(Long clientId);
 
     Client getClientById(Long clientId);
+
     Client getClientByEmail(String email);
 
-    public void changePassword(Long clientId, String oldPassword, String newPassword);
+    void changePassword(Long clientId, String oldPassword, String newPassword);
 
-    @Transactional //para garantir que as duas operações sejam executadas ou nenhuma
-    public ClientDto editProfile(Long clientId, ClientDto clientDto);
+    @Transactional
+        //para garantir que as duas operações sejam executadas ou nenhuma
+    ClientDto editProfile(Long clientId, ClientDto clientDto);
 
-    public ClientDto viewProfile(Long clientId);
+    ClientDto viewProfile(Long clientId);
 
 
     //quais outras funcionalidades o cliente pode ter?

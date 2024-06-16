@@ -5,7 +5,7 @@ import 'package:teste_2/views/screens/request_order/check_measures.dart';
 import 'dart:convert';
 
 import '../archive/map_screen_copy.dart';
-import 'order_confirmation_screen.dart';
+import 'order_cost_screen.dart';
 
 class SearchRoute extends StatefulWidget {
   @override

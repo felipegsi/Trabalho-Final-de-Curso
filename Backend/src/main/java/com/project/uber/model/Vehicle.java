@@ -1,7 +1,7 @@
 package com.project.uber.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.project.uber.enums.VehicleType;
+import com.project.uber.enums.Category;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -38,10 +38,10 @@ public class Vehicle {
     private Double capacity;
 
     @Enumerated(EnumType.STRING)
-    private VehicleType vehicleType;
+    private Category category;
 
-    public Vehicle(String v, int year, String plate, String brand, String model, Object capacity) {
-        this.vehicleType = VehicleType.valueOf(v);
+    public Vehicle(Category category, int year, String plate, String brand, String model, Object capacity) {
+        this.category = category;
         this.year = year;
         this.plate = plate;
         this.brand = brand;

@@ -1,16 +1,19 @@
 import 'dart:ffi';
 
 import 'package:flutter/material.dart';
+import 'package:stomp_dart_client/stomp.dart';
+import 'package:stomp_dart_client/stomp_config.dart';
+import 'package:stomp_dart_client/stomp_frame.dart';
 import '../../../models/driver.dart';
 import '../../../services/network_service.dart';
 
 
 class SearchingDriverScreen extends StatefulWidget {
-  final Long? orderId;
+ // final Long? orderId;
 
   const SearchingDriverScreen({
     super.key,
-    required this.orderId,
+    //required this.orderId,
   });
 
   @override
@@ -18,67 +21,85 @@ class SearchingDriverScreen extends StatefulWidget {
 }
 
 class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
-  final NetworkService _networkService = NetworkService();
+  StompClient? stompClient;
+  String receivedMessage = "";
+  final String myUserId = "senha123"; // Identificador do usuário
+  final TextEditingController userIdController = TextEditingController();
+  final TextEditingController messageController = TextEditingController();
 
-// _buildDriver
-  Widget _buildDriver(Driver driver) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          Text('Driver: ${driver.name}'),
-          Text('Phone: ${driver.birthdate}'),
-          Text('Vehicle: ${driver.city}'),
-          Text('License Plate: ${driver.email}'),
-        ],
+  @override
+  void initState() {
+    super.initState();
+    stompClient = StompClient(
+      config: StompConfig(
+        url: 'ws://10.0.2.2:8080/ws-endpoint/websocket',
+        onConnect: onConnect,
+        onStompError: (frame) {
+          print('STOMP Error: ${frame.body}');
+        },
+        onWebSocketError: (dynamic error) {
+          print('WebSocket Error: $error');
+        },
       ),
+    );
+    stompClient?.activate();
+  }
+
+  void onConnect(StompFrame frame) {
+    stompClient?.subscribe(
+      destination: '/queue/driver/reply-$myUserId',
+      callback: (frame) {
+        setState(() {
+          receivedMessage = frame.body ?? '';
+        });
+      },
     );
   }
 
-  // metodo para construir a AppBar
-  AppBar _buildAppBar() {
-    return AppBar(
-      title: const Text('Parking Lots - List', style: TextStyle(color: Colors.white)),
-      backgroundColor: Colors.deepPurple,
-      actions: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(right: 20.0),
-          child: PopupMenuButton<String>(
-            icon: const Icon(Icons.sort, color: Colors.white),
-            //onSelected: (value) => _sortParks(_loadParks() as List<Park>, value),
-            itemBuilder: (BuildContext context) {
-              return {'Last Updated', 'Name', 'Current Occupation'}.map((String choice) {
-                return PopupMenuItem<String>(
-                  value: choice,
-                  child: Text(choice),
-                );
-              }).toList();
-            },
-          ),
-        ),
-      ],
-    );
+  void sendMessageToUser(String userId, String message) {
+    if (stompClient != null && stompClient!.connected) {
+      stompClient!.send(
+        destination: '/app/user-message-$userId',
+        body: message,
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    stompClient?.deactivate();
+    userIdController.dispose();
+    messageController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: _buildAppBar(), // Constrói a barra de aplicativo
-      body: FutureBuilder<Driver>(
-        future: _networkService.assignOrderToDriver(widget.orderId, context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(child: CircularProgressIndicator()); // Exibe um indicador de progresso enquanto carrega
-          } else if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}')); // Exibe uma mensagem de erro se ocorrer um erro
-          } else if (!snapshot.hasData ) {
-            return Center(child: Text('No driver found')); // Exibe uma mensagem se não houver dados
-          } else {
-            // retornar o driver
-            return _buildDriver(snapshot.data!); // Constrói a lista de parques
-
-          }
-        },
+      appBar: AppBar(
+        title: Text('Flutter WebSocket STOMP'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Text('Mensagem de algum outro usuário é: $receivedMessage'),
+            SizedBox(height: 20),
+            TextField(
+              controller: userIdController,
+              decoration: InputDecoration(labelText: 'ID do usuário destinatário'),
+            ),
+            TextField(
+              controller: messageController,
+              decoration: InputDecoration(labelText: 'Mensagem'),
+            ),
+            SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => sendMessageToUser(userIdController.text, messageController.text),
+              child: Text('Enviar mensagem ao usuário'),
+            ),
+          ],
+        ),
       ),
     );
   }

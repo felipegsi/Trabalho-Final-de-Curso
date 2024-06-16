@@ -2,6 +2,7 @@ package com.project.uber.configuration;
 
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
+import org.springframework.scheduling.concurrent.DefaultManagedTaskScheduler;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
@@ -9,17 +10,15 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @Configuration
 @EnableWebSocketMessageBroker
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
+
     @Override
-    public void registerStompEndpoints(StompEndpointRegistry registry) {
-        // O endpoint que os clientes usarão para se conectar
-        registry.addEndpoint("/ws").withSockJS();
+    public void configureMessageBroker (MessageBrokerRegistry config) {
+        config.enableSimpleBroker("/topic","/queue");
+        config.setApplicationDestinationPrefixes("/app");
     }
 
     @Override
-    public void configureMessageBroker(MessageBrokerRegistry registry) {
-        // Prefixos para os destinos "app" para mensagens destinadas a métodos via @MessageMapping
-        registry.setApplicationDestinationPrefixes("/app");
-        // Configura um broker de mensagens simples
-        registry.enableSimpleBroker("/topic");
+    public void registerStompEndpoints (StompEndpointRegistry registry) {
+        registry.addEndpoint("/ws-endpoint").setAllowedOrigins("*").withSockJS();
     }
 }

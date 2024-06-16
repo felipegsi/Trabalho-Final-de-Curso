@@ -89,6 +89,19 @@ public abstract class User implements UserDetails {
     }
 
     //getPrincipal() -> retorna o usuário logado
-
+    @Override
+    public String toString() {
+        return "User{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", phoneNumber='" + phoneNumber + '\'' +
+                ", taxPayerNumber=" + taxPayerNumber +
+                ", street='" + street + '\'' +
+                ", city='" + city + '\'' +
+                ", postalCode=" + postalCode +
+                '}';
+    }
 
 }

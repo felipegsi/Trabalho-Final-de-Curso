@@ -10,6 +10,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,12 +32,13 @@ public class SecurityFilter extends OncePerRequestFilter {
     private DriverRepository driverRepository; // Adicione um repositório para Driver
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain)
             throws ServletException, IOException {
 
         String token = extractTokeHeader(request);
 
         if (token != null) {
+            //erro aqui talvez
             String email = authenticationService.getClientEmailFromToken(token);
             Client client = clientRepository.findByEmail(email);
             Driver driver = driverRepository.findByEmail(email); // Carregue o Driver pelo email

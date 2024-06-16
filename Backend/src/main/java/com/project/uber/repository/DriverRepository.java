@@ -1,4 +1,5 @@
 package com.project.uber.repository;
+import com.project.uber.enums.Category;
 import com.project.uber.enums.VehicleType;
 import com.project.uber.model.Client;
 import com.project.uber.model.Driver;
@@ -17,6 +18,6 @@ public interface DriverRepository extends JpaRepository<Driver, Long> {
     Optional<Driver> findByName(String name);
     @Query("SELECT d FROM Driver d WHERE d.isOnline = true AND d.isBusy = false") // Query to find available drivers
     List<Driver> findAvailableDrivers();
-    @Query("SELECT d FROM Driver d WHERE d.vehicle.vehicleType = :vehicleType AND d.isOnline = true")
-    List<Driver> findAvailableDriversByVehicleType(VehicleType vehicleType);
+    @Query("SELECT d FROM Driver d WHERE d.vehicle.category = :vehicleType AND d.isOnline = true")
+    List<Driver> findAvailableDriversByVehicleType(Category vehicleType);
 }

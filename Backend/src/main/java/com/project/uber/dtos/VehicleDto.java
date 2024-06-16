@@ -1,5 +1,6 @@
 package com.project.uber.dtos;
 
+import com.project.uber.enums.Category;
 import com.project.uber.enums.VehicleType;
 import com.project.uber.model.Vehicle;
 import lombok.Getter;
@@ -24,15 +25,15 @@ public class VehicleDto {
     private Double capacity;
     @Getter
     @Setter
-    private VehicleType vehicleType;
+    private Category category;
 
 
     // Default constructor
     public VehicleDto() {}
 
     // Constructor with all fields
-    public VehicleDto(String vehicleType, int year, String plate, String brand, String model, Double capacity) {
-        this.vehicleType = VehicleType.valueOf(vehicleType);
+    public VehicleDto(Category category, int year, String plate, String brand, String model, Double capacity) {
+        this.category = category;
         this.year = year;
         this.plate = plate;
         this.brand = brand;
@@ -42,7 +43,7 @@ public class VehicleDto {
 
     public static VehicleDto fromVehicle(Vehicle vehicle) {
         return new VehicleDto(
-                String.valueOf(vehicle.getVehicleType()),
+                vehicle.getCategory(),
                 vehicle.getYear(),
                 vehicle.getPlate(),
                 vehicle.getBrand(),

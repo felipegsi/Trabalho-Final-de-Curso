@@ -3,6 +3,7 @@ package com.project.uber.controller;
 import com.project.uber.dtos.*;
 import com.project.uber.enums.Category;
 import com.project.uber.infra.exceptions.BusinessException;
+import com.project.uber.model.Client;
 import com.project.uber.model.Driver;
 import com.project.uber.model.Order;
 import com.project.uber.service.implementation.EmailServiceImpl;
@@ -49,10 +50,10 @@ public class ClientController {
 
     // This method handles POST requests to "/register" and registers a new client.
     @PostMapping("/register") // This annotation marks the method to accept POST requests on the path "/register".
-    private ClientDto save(@RequestBody ClientDto clientDto) { // @RequestBody annotation indicates a method parameter should be bound to the body of the web request.
+    private ClientDto save(@RequestBody Client client) { // @RequestBody annotation indicates a method parameter should be bound to the body of the web request.
         try {
             // Attempts to save the client and return the saved client data.
-            return clientService.saveClient(clientDto);
+            return clientService.saveClient(client);
         } catch (BusinessException e) {
             // If there's a business logic exception, it rethrows it with a custom message.
             throw new BusinessException("Client already exists!");
@@ -87,6 +88,7 @@ public class ClientController {
         ClientDto clientDto = clientService.viewProfile(clientId);
         return new ResponseEntity<>(clientDto, HttpStatus.OK);
     }
+
     // verify if the token is valid
     @GetMapping("/isValidToken")
     public ResponseEntity<Boolean> isValidToken(@RequestHeader("Authorization") String token) {
@@ -112,14 +114,14 @@ public class ClientController {
 
     // This method estimates the cost of an order based on its details.
     @PostMapping("/estimateAllCategoryOrderCost") // Handles POST requests to "/estimateOrderCost".
-    public ResponseEntity<List<BigDecimal>> estimateAllCategoryOrderCost( @RequestBody LocationDto locationDto,
-                                                                          @RequestHeader("Authorization") String token) {
+    public ResponseEntity<List<BigDecimal>> estimateAllCategoryOrderCost(@RequestBody LocationDto locationDto,
+                                                                         @RequestHeader("Authorization") String token) {
         try {
             if (locationDto.getOrigin() == null || locationDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
             }
 
-            if(validateTokenAndGetClientId(token) <= 0){
+            if (validateTokenAndGetClientId(token) <= 0) {
                 throw new BusinessException("Client not found.");
             }
 
@@ -135,14 +137,14 @@ public class ClientController {
 
 
     @PostMapping("/estimateOrderCost") // Handles POST requests to "/estimateOrderCost".
-    public ResponseEntity<BigDecimal> estimateOrderCost(@RequestBody OrderDto orderDto ,
+    public ResponseEntity<BigDecimal> estimateOrderCost(@RequestBody OrderDto orderDto,
                                                         @RequestHeader("Authorization") String token) {
         try {
             if (orderDto == null || orderDto.getOrigin() == null || orderDto.getDestination() == null) {
                 throw new BusinessException("Origin and destination are mandatory.");
             }
 
-            if(validateTokenAndGetClientId(token) <= 0){
+            if (validateTokenAndGetClientId(token) <= 0) {
                 throw new BusinessException("Client not found.");
             }
             validateTokenAndGetClientId(token);
@@ -158,6 +160,7 @@ public class ClientController {
             throw new BusinessException("Error estimating order cost: " + e.getMessage());
         }
     }
+
     // This method creates a new order for a client.
     @PostMapping("/createOrder") // Handles POST requests to "/createOrder".
     public ResponseEntity<?> createOrder(@RequestBody OrderDto orderDto,
@@ -176,6 +179,19 @@ public class ClientController {
         } catch (BusinessException e) {
             // Handles exceptions during order creation.
             throw new BusinessException("Error creating order: " + e.getMessage());
+        }
+    }
+
+    // This method retrieves the order history for a client based on their token and the order ID.
+    @PostMapping("/assignOrderToDriver/{orderId}")
+    public ResponseEntity<Driver> assignOrderToDriver(@PathVariable Long orderId, @RequestHeader("Authorization") String token) {
+        try {
+            // validar o token
+            validateTokenAndGetClientId(token);
+            Driver driver = orderService.assignOrderToDriver(orderId);
+            return new ResponseEntity<>(driver, HttpStatus.OK);
+        } catch (BusinessException e) {
+            throw new BusinessException("Error assign order to driver: " + e.getMessage());
         }
     }
 
@@ -245,16 +261,5 @@ public class ClientController {
         return ResponseEntity.ok().build();
     }
 
-//teste de envio de emailrtrthrtgrtgrgrb
-
-    @PostMapping("/assignOrderToDriver")
-    public ResponseEntity<Driver> assignOrderToDriver(@RequestBody Long orderId, @RequestHeader("Authorization") String token) {
-        try {
-            Driver driver = orderService.assignOrderToDriver(orderId);
-            return new ResponseEntity<>(driver, HttpStatus.OK);
-        } catch (BusinessException e) {
-            throw new BusinessException("Error assign order to driver: " + e.getMessage());
-        }
-    }
 
 }

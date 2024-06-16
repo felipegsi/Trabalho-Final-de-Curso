@@ -17,7 +17,6 @@ import com.project.uber.model.Vehicle;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service // Marks the class as a Spring service.
 public class DriverServiceImpl implements DriverService {
@@ -76,7 +75,7 @@ public class DriverServiceImpl implements DriverService {
         vehicle.setPlate(vehicleDto.getPlate());
         vehicle.setBrand(vehicleDto.getBrand());
         vehicle.setModel(vehicleDto.getModel());
-        vehicle.setVehicleType(vehicleDto.getVehicleType());
+        vehicle.setCategory(vehicleDto.getCategory());
         vehicle.setCapacity(vehicleDto.getCapacity());
         return vehicle;
     }
@@ -179,7 +178,7 @@ public class DriverServiceImpl implements DriverService {
         VehicleDto vehicleDto = null;
         if (driver.getVehicle() != null) {
             Vehicle vehicle = driver.getVehicle();
-            vehicleDto = new VehicleDto(String.valueOf(vehicle.getVehicleType()),vehicle.getYear(), vehicle.getBrand(), vehicle.getPlate(),
+            vehicleDto = new VehicleDto(vehicle.getCategory(),vehicle.getYear(), vehicle.getBrand(), vehicle.getPlate(),
                     vehicle.getModel(), vehicle.getCapacity());
         }
 
@@ -202,4 +201,7 @@ public class DriverServiceImpl implements DriverService {
         driver.setIsOnline(isOnline);
         driverRepository.save(driver);
     }
+
+
+
 }

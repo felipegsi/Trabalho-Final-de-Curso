@@ -1,9 +1,13 @@
 // custom_drawer.dart
 
+import 'dart:ffi';
+
 import 'package:flutter/material.dart';
+import 'package:teste_2/views/screens/order_confirmed/searching_driver_screen.dart';
 import 'package:teste_2/views/screens/profile/profile_screen.dart';
 
 import '../../../themes/app_theme.dart';
+import 'order_screen.dart';
 
 class MenuDrawer extends StatelessWidget {
   const MenuDrawer({Key? key}) : super(key: key);
@@ -110,6 +114,24 @@ class MenuDrawer extends StatelessWidget {
                 // Adicionar navegação ou função de clique aqui
               },
             ),
+
+            ListTile(
+              leading: Icon(Icons.border_all),
+              title: Text('Teste receber pedido'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen()));
+                // Adicionar navegação ou função de clique aqui
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.account_tree_outlined),
+              title: Text('Send request order'),
+              onTap: () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => SearchingDriverScreen()));
+                // Adicionar navegação ou função de clique aqui
+              },
+            ),
+
             // Adicione outros ListTiles conforme necessário
           ],
         ),

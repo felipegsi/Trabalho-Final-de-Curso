@@ -24,23 +24,23 @@ public class ClientServiceImpl implements ClientService {
     // This method is used to save a new client. It first checks if a client with the same email already exists.
     // If the client already exists, it throws a BusinessException. Otherwise, it saves the new client in the database.
     @Override
-    public ClientDto saveClient(ClientDto clientDto) {
+    public ClientDto saveClient(Client newClient) {
 
-        Client clientAlredyExists = clientRepository.findByEmail(clientDto.email());
+        Client clientAlredyExists = clientRepository.findByEmail(newClient.getEmail());
 
         if (clientAlredyExists != null) {
             throw new BusinessException("Client already exists!");
         }
 
-        var passwordHash = passwordEncoder.encode(clientDto.password());
+        var passwordHash = passwordEncoder.encode(newClient.getPassword());
 
-        Client newClient = clientRepository.save(new Client(clientDto.name(), clientDto.email(), passwordHash,
-                clientDto.phoneNumber(), clientDto.taxPayerNumber(), clientDto.street(),
-                clientDto.city(), clientDto.postalCode()));
-
-        return new ClientDto(newClient.getName(), newClient.getEmail(), newClient.getPassword(),//nao tirei a senha porque se a retira-se o cliente nao iaconseguir se registar pois um parametro de entrada é a senha
+        Client savedClient = clientRepository.save(new Client(newClient.getName(), newClient.getEmail(), passwordHash,
                 newClient.getPhoneNumber(), newClient.getTaxPayerNumber(), newClient.getStreet(),
-                newClient.getCity(), newClient.getPostalCode());
+                newClient.getCity(), newClient.getPostalCode()));
+
+        return new ClientDto(savedClient.getName(), savedClient.getEmail(), // remove password from here
+                savedClient.getPhoneNumber(), savedClient.getTaxPayerNumber(), savedClient.getStreet(),
+                savedClient.getCity(), savedClient.getPostalCode());
     }
 
     // This method is used to delete a client by their ID.
@@ -84,7 +84,7 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDto viewProfile(Long clientId) {
         Client client = getClientById(clientId);
-        return new ClientDto(client.getName(), client.getEmail(), client.getPassword(),
+        return new ClientDto(client.getName(), client.getEmail(),
                 client.getPhoneNumber(), client.getTaxPayerNumber(), client.getStreet(),
                 client.getCity(), client.getPostalCode());
     }
@@ -93,18 +93,18 @@ public class ClientServiceImpl implements ClientService {
     @Override
     public ClientDto editProfile(Long clientId, ClientDto clientDto) {
         Client client = getClientById(clientId);
-        client.setName(clientDto.name());
+        client.setName(clientDto.getName());
         //tratar os erros
 
-        client.setEmail(clientDto.email());
-        client.setPhoneNumber(clientDto.phoneNumber());
-        client.setTaxPayerNumber(clientDto.taxPayerNumber());
-        client.setStreet(clientDto.street());
-        client.setCity(clientDto.city());
-        client.setPostalCode(clientDto.postalCode());
+        client.setEmail(clientDto.getEmail());
+        client.setPhoneNumber(clientDto.getPhoneNumber());
+        client.setTaxPayerNumber(clientDto.getTaxPayerNumber());
+        client.setStreet(clientDto.getStreet());
+        client.setCity(clientDto.getCity());
+        client.setPostalCode(clientDto.getPostalCode());
         clientRepository.save(client);
 
-        return new ClientDto(client.getName(), client.getEmail(), client.getPassword(),
+        return new ClientDto(client.getName(), client.getEmail(),
                 client.getPhoneNumber(), client.getTaxPayerNumber(), client.getStreet(),
                 client.getCity(), client.getPostalCode());
     }

@@ -1,7 +1,7 @@
 class Client {
   final String name;
   final String email;
-  final String password;
+  final String? password;// nao deve aparecer em todos os lugares
   final String phoneNumber;
   final int taxPayerNumber;
   final String street;
@@ -11,7 +11,7 @@ class Client {
   Client({
     required this.name,
     required this.email,
-    required this.password,
+    this.password,
     required this.phoneNumber,
     required this.taxPayerNumber,
     required this.street,
@@ -36,7 +36,6 @@ class Client {
     return Client(
       name: json['name'],
       email: json['email'],
-      password: json['password'],
       phoneNumber: json['phoneNumber'],
       taxPayerNumber: json['taxPayerNumber'],
       street: json['street'],
