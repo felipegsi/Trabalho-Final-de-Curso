@@ -1,4 +1,4 @@
-class VehicleDto {
+class Vehicle {
   int year;
   String plate;
   String brand;
@@ -6,7 +6,7 @@ class VehicleDto {
   double capacity;
   String vehicleType;
 
-  VehicleDto({
+  Vehicle({
     required this.year,
     required this.plate,
     required this.brand,
@@ -15,8 +15,8 @@ class VehicleDto {
     required this.vehicleType,
   });
 
-  factory VehicleDto.fromJson(Map<String, dynamic> json) {
-    return VehicleDto(
+  factory Vehicle.fromJson(Map<String, dynamic> json) {
+    return Vehicle(
       year: json['year'],
       plate: json['plate'],
       brand: json['brand'],

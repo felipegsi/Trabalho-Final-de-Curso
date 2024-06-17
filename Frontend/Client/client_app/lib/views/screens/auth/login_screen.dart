@@ -1,8 +1,10 @@
+// login_screen.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_svg/svg.dart';
+import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 import 'package:teste_2/views/screens/home/home_screen.dart';
-import '../../../services/network_service.dart';
+import '../../../api/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
   @override
@@ -12,35 +14,48 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
+  void _attemptLogin(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
 
-  void _attemptLogin(BuildContext context) async {// tenta fazer login
-    final networkService = NetworkService();
-    String? token = await networkService.login(_emailController.text, _passwordController.text);// tenta fazer login
-    if (token != null) {// se o token for diferente de nulo
+    final authApi = Provider.of<AuthApi>(context, listen: false);
+    String? token = await authApi.login(_emailController.text, _passwordController.text);
+
+    setState(() {
+      _isLoading = false;
+    });
+
+    if (token != null) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (context) => HomeScreen()),
             (Route<dynamic> route) => false,
       );
     } else {
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Error'),
-            content: Text('Failed to login. Please try again.'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog(context);
     }
+  }
+
+  void _showErrorDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Error'),
+          content: Text('Failed to login. Please try again.'),
+          actions: [
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -61,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen> {
             SizedBox(height: 16),
             _buildTextField(_passwordController, 'Password', Icons.lock, isObscure: true),
             SizedBox(height: 24),
-            _buildLoginButton(context),
+            _isLoading ? CircularProgressIndicator() : _buildLoginButton(context),
             _buildRegisterButton(context),
           ],
         ),
@@ -94,7 +109,7 @@ class _LoginScreenState extends State<LoginScreen> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           padding: EdgeInsets.symmetric(vertical: 16),
         ),
-        child: Text('Sing in'),
+        child: Text('Sign in'),
       ),
     );
   }

@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:teste_2/views/screens/request_order/search_route_drawer.dart';
 import 'package:teste_2/views/screens/home/menu_drawer.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../../../themes/app_theme.dart';
-import 'package:geolocator/geolocator.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,62 +13,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  LatLng _currentPosition = LatLng(38.758072, -9.153414);
-  final MapController _mapController = MapController();
-  double _backgroundIconSize = 60;
-  double _iconSize = 30;
-  double _spaceBetweenIcons = 30;
+  GoogleMapController? _mapController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
+  late Future<LatLng> _currentPositionFuture;
 
   @override
   void initState() {
     super.initState();
-    // TODO: implementar a permissão de localização, mostrando o icone de localização no mapa
-    _determinePosition();
+    _currentPositionFuture = _determinePosition();
   }
 
-  // metodo para determinar a posição atual do dispositivo
-  Future<LatLng?> _determinePosition() async {
-    try {
-      print('---2---_determinePosition');
-
-      bool serviceEnabled;
-      LocationPermission permission;
-
-      serviceEnabled = await Geolocator.isLocationServiceEnabled();
-      if (!serviceEnabled) {
-        return Future.error('Location services are disabled.');
-      }
-
-      permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          return Future.error('Location permissions are denied');
-        }
-      }
-
-      if (permission == LocationPermission.deniedForever) {
-        return Future.error(
-            'Location permissions are permanently denied, we cannot request permissions.');
-      }
-
-      Position position = await Geolocator.getCurrentPosition(); // Obtém a posição atual do dispositivo
-      _currentPosition = LatLng(position.latitude, position.longitude);
-    } catch (e) {}
-
-    return _currentPosition;
-  }
-
-  Marker _buildCurrentLocationMarker(LatLng currentLocation) {
-    return Marker(
-      width: 80.0,
-      height: 80.0,
-      point: currentLocation,
-      child: Icon(Icons.location_on, color: Colors.red),
-    );
-  }
-
+  //TODO: COLOCAR MARCADORES DOS DRIVERS QUE ESTAO DISPONIVEIS
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +31,34 @@ class _HomeScreenState extends State<HomeScreen> {
       endDrawerEnableOpenDragGesture: false,
       body: Stack(
         children: [
-          _buildMap(),
+          FutureBuilder<LatLng>(
+            future: _currentPositionFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Erro ao obter localização'));
+              } else if (!snapshot.hasData) {
+                return Center(child: Text('Localização não disponível'));
+              } else {
+                LatLng _currentPosition = snapshot.data!;
+                return GoogleMap(
+                  onMapCreated: (GoogleMapController controller) {
+                    _mapController = controller;
+                    _mapController?.animateCamera(
+                      CameraUpdate.newLatLng(_currentPosition),
+                    );
+                  },
+                  initialCameraPosition: CameraPosition(
+                    target: LatLng(0, 0), // Valor padrão inicial
+                    zoom: 12,
+                  ),
+                  myLocationEnabled: true,
+                  zoomControlsEnabled: false,
+                );
+              }
+            },
+          ),
           _buildTopButton(context),
           _buildBottomCard(context),
         ],
@@ -87,24 +67,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildMap() {
-    return FlutterMap(
-      mapController: _mapController,
-      options: MapOptions(
-        initialCenter: _currentPosition,
-        initialZoom: 16,
+  Future<LatLng> _determinePosition() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      return LatLng(0, 0);
+    }
 
-      ),
-      children: [
-        TileLayer(
-          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
-          userAgentPackageName: 'dev.fleaflet.flutter_map.example',
-        ),
-        MarkerLayer(
-          markers: [_buildCurrentLocationMarker(_currentPosition)],
-        ),
-      ],
-    );
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        return LatLng(0, 0);
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      return LatLng(0, 0);
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    return LatLng(position.latitude, position.longitude);
   }
 
   Widget _buildTopButton(BuildContext context) {
@@ -216,13 +198,13 @@ class _HomeScreenState extends State<HomeScreen> {
         scrollDirection: Axis.horizontal,
         children: [
           _buildIconButton(Icons.history, 0),
-          SizedBox(width: _spaceBetweenIcons),
+          SizedBox(width: 30),
           _buildIconButton(Icons.star, 0),
-          SizedBox(width: _spaceBetweenIcons),
+          SizedBox(width: 30),
           _buildIconButton(Icons.notifications, 1),
-          SizedBox(width: _spaceBetweenIcons),
+          SizedBox(width: 30),
           _buildIconButton(Icons.person, 2),
-          SizedBox(width: _spaceBetweenIcons),
+          SizedBox(width: 30),
           _buildIconButton(Icons.help_outline, 3),
         ],
       ),
@@ -231,13 +213,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildIconButton(IconData icon, int index) {
     return Container(
-      width: _backgroundIconSize,
+      width: 60,
       decoration: BoxDecoration(
         color: iconBackgroundColor,
         borderRadius: BorderRadius.circular(30),
       ),
       child: IconButton(
-        iconSize: _iconSize,
+        iconSize: 30,
         icon: Icon(icon),
         color: iconColor,
         onPressed: () {},

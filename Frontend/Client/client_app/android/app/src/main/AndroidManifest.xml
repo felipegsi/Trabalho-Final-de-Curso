@@ -9,6 +9,11 @@
         android:label="teste_2"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
+        <!-- Chave de API do Google Maps -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyDWkqwPVu8yCPdeR3ynYX-a8VHco5kS-Ik"/>
+
         <activity
             android:name=".MainActivity"
             android:exported="true"

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../enums/category.dart';
-import '../../../services/network_service.dart';
+import '../../../api/network_service.dart';
 import '../../../models/order.dart';
 import 'package:decimal/decimal.dart';
 

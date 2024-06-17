@@ -1,11 +1,13 @@
+// order_cost_screen.dart
 import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:open_route_service/open_route_service.dart';
+import 'package:provider/provider.dart';
+import '../../../api/order_api.dart';
 import '../../../models/order.dart';
-import '../../../services/network_service.dart';
 import '../order_confirmed/searching_driver_screen.dart';
 
 class OrderCostScreen extends StatefulWidget {
@@ -27,7 +29,6 @@ class OrderCostScreen extends StatefulWidget {
 }
 
 class _OrderCostScreenState extends State<OrderCostScreen> {
-  final NetworkService _networkService = NetworkService();
   List<LatLng> points = [];
   List<Marker> markers = [];
   final MapController mapController = MapController();
@@ -39,17 +40,18 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
     super.initState();
     initializeMapMarkers();
     getRoute();
+    estimateCost();
   }
 
   void initializeMapMarkers() {
     markers.addAll([
       Marker(
         point: widget.origin,
-        child: Icon(Icons.location_on, color: Colors.red),
+        child: const Icon(Icons.location_on, color: Colors.red),
       ),
       Marker(
         point: widget.destination,
-        child: Icon(Icons.location_on, color: Colors.blue),
+        child: const Icon(Icons.location_on, color: Colors.blue),
       ),
     ]);
   }
@@ -61,14 +63,14 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
       apiKey: '5b3ce3597851110001cf6248b8fc3d76941643ee9de00a23820316b7',
     );
 
-    final List<ORSCoordinate> routeCoordinates =
-        await client.directionsRouteCoordsGet(
+    final List<ORSCoordinate> routeCoordinates = await client.directionsRouteCoordsGet(
       startCoordinate: ORSCoordinate(
-          latitude: widget.origin.latitude, longitude: widget.origin.longitude
+        latitude: widget.origin.latitude,
+        longitude: widget.origin.longitude,
       ),
       endCoordinate: ORSCoordinate(
-          latitude: widget.destination.latitude,
-          longitude: widget.destination.longitude
+        latitude: widget.destination.latitude,
+        longitude: widget.destination.longitude,
       ),
       profileOverride: ORSProfile.drivingCar,
     );
@@ -82,12 +84,25 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
     });
   }
 
+  Future<void> estimateCost() async {
+    final orderApi = Provider.of<OrderApi>(context, listen: false);
+    try {
+      final cost = await orderApi.estimateOrderCost(createOrder());
+      setState(() {
+        orderCost = cost;
+      });
+    } catch (error) {
+      print('Error estimating order cost: $error');
+      setState(() {
+        orderCost = Decimal.zero;
+      });
+    }
+  }
+
   void adjustMapZoom() {
     if (markers.length == 2) {
-      LatLngBounds bounds =
-          LatLngBounds.fromPoints([widget.origin, widget.destination]);
-      mapController.fitBounds(bounds,
-          options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+      LatLngBounds bounds = LatLngBounds.fromPoints([widget.origin, widget.destination]);
+      mapController.fitBounds(bounds, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
     }
   }
 
@@ -122,6 +137,7 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
       ],
     );
   }
+
   Widget buildBottomMenu() {
     return Align(
       alignment: Alignment.bottomCenter,
@@ -133,39 +149,26 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
           borderRadius: BorderRadius.circular(15.0),
           boxShadow: const [
             BoxShadow(
-                color: Colors.black26,
-                blurRadius: 10.0,
-                spreadRadius: 1.0,
-                offset: Offset(0.0, 0.0))
+              color: Colors.black26,
+              blurRadius: 10.0,
+              spreadRadius: 1.0,
+              offset: Offset(0.0, 0.0),
+            ),
           ],
         ),
         child: Column(
-          mainAxisSize: MainAxisSize.min, // Use min to fit content
+          mainAxisSize: MainAxisSize.min,
           children: <Widget>[
-            FutureBuilder<Decimal>(
-              future: _networkService.estimateOrderCost(createOrder(), context),
-              builder: (context, snapshot) {
-                print("snapshot.data: ");
-                print(snapshot.data);
-
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return CircularProgressIndicator();
-                } else if (snapshot.hasError) {
-                  return Text('Error: ${snapshot.error}');
-                } else if (snapshot.hasData) {
-                  orderCost = snapshot.data!;
-                  return buildMenuItem(
-                      context,
-                      widget.categoryType,
-                      'Example Description',
-
-                      '\u20AC${orderCost.toDouble().toStringAsFixed(2)}'); // u20AC é o simbolo do Euro
-                } else {
-                  return Text('No data');
-                }
-              },
+            ListTile(
+              leading: getCategoryIcon(widget.categoryType),
+              title: Text(widget.categoryType, style: TextStyle(fontWeight: FontWeight.bold)),
+              subtitle: Text('Example Description'),
+              trailing: Text(
+                '\u20AC${orderCost.toDouble().toStringAsFixed(2)}', // u20AC é o símbolo do Euro
+                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black),
+              ),
             ),
-            SizedBox(height: 10),  // Add some spacing
+            SizedBox(height: 10), // Add some spacing
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
@@ -178,41 +181,22 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
               ),
               onPressed: () async {
                 try {
-                  Order? newOrder = await _networkService.createOrder(createOrder(), context);
+                  final orderApi = Provider.of<OrderApi>(context, listen: false);
+                  Order? newOrder = await orderApi.createOrder(createOrder());
                   if (newOrder != null) {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => SearchingDriverScreen(
-                          //orderId: newOrder.id,
-                        ),
-                      ),
+                        builder: (context) => SearchingDriverScreen(orderId: newOrder.id!),                      ),
                     );
                   } else {
-                    showDialog(
-                      context: context,
-                      builder: (context) {
-                        return AlertDialog(
-                          title: Text("Erro"),
-                          content: Text("Não foi possível confirmar seu pedido. Tente novamente."),
-                          actions: <Widget>[
-                            TextButton(
-                              child: Text("Tentar Novamente"),
-                              onPressed: () {
-                                Navigator.of(context).pop(); // Fecha o diálogo
-                              },
-                            ),
-                          ],
-                        );
-                      },
-                    );
+                    _showErrorDialog('Não foi possível confirmar seu pedido. Tente novamente.');
                   }
                 } catch (error) {
-                  // Trate o erro aqui
+                  _showErrorDialog('Erro ao criar pedido: $error');
                 }
               },
               child: Text('Confirm Order'),
             ),
-
           ],
         ),
       ),
@@ -224,6 +208,7 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
       return Order(
         origin: '${widget.origin.latitude},${widget.origin.longitude}',
         destination: '${widget.destination.latitude},${widget.destination.longitude}',
+        description: widget.attributes['Description'] ?? 'Unknown Description',
         category: widget.categoryType.toUpperCase(),
         plate: widget.attributes['Plate'] ?? 'Unknown Plate',
         model: widget.attributes['Model'] ?? 'Unknown Model',
@@ -233,6 +218,7 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
       return Order(
         origin: '${widget.origin.latitude},${widget.origin.longitude}',
         destination: '${widget.destination.latitude},${widget.destination.longitude}',
+        description: widget.attributes['Description'] ?? 'Unknown Description',
         category: widget.categoryType.toUpperCase(),
         width: int.tryParse(widget.attributes['Width']!.toString()) ?? 0, // Default value if parsing fails
         height: int.tryParse(widget.attributes['Height']!.toString()) ?? 0,
@@ -242,32 +228,38 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
     }
   }
 
-  Widget buildMenuItem(BuildContext context, String category, String example,
-      String price) {
-
-    IconData selectedIcon;
-
-    if (category.toUpperCase() == "MOTORIZED") {
-      selectedIcon = FontAwesomeIcons.trailer;
-    } else if (category.toUpperCase() == "SMALL") {
-      selectedIcon = FontAwesomeIcons.motorcycle;
-    } else if (category.toUpperCase() == "MEDIUM") {
-      selectedIcon = FontAwesomeIcons.car;
-    } else if (category.toUpperCase() == "LARGE") {
-      selectedIcon = FontAwesomeIcons.caravan;
-    } else {
-      selectedIcon = FontAwesomeIcons.question;
+  Icon getCategoryIcon(String category) {
+    switch (category.toUpperCase()) {
+      case "MOTORIZED":
+        return Icon(FontAwesomeIcons.trailer, size: 34.0);
+      case "SMALL":
+        return Icon(FontAwesomeIcons.motorcycle, size: 34.0);
+      case "MEDIUM":
+        return Icon(FontAwesomeIcons.car, size: 34.0);
+      case "LARGE":
+        return Icon(FontAwesomeIcons.caravan, size: 34.0);
+      default:
+        return Icon(FontAwesomeIcons.question, size: 34.0);
     }
-
-    return ListTile(
-        leading: Icon(selectedIcon, size: 34.0),
-        title: Text(category, style: TextStyle(fontWeight: FontWeight.bold)),
-        subtitle: Text(example),
-        trailing: Text(price,
-            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 17, color: Colors.black)),
-        onTap: () {
-        }
-    );
   }
 
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text('Erro'),
+          content: Text(message),
+          actions: <Widget>[
+            TextButton(
+              child: Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
 }

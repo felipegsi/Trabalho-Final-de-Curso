@@ -9,7 +9,7 @@ class Driver {
   final String street;
   final String city;
   final int postalCode;
-  final VehicleDto vehicleDto;
+  final Vehicle vehicle;
 
   Driver({
     required this.name,
@@ -20,7 +20,7 @@ class Driver {
     required this.street,
     required this.city,
     required this.postalCode,
-    required this.vehicleDto,
+    required this.vehicle,
   });
 
   factory Driver.fromJson(Map<String, dynamic> json) {
@@ -33,7 +33,21 @@ class Driver {
       street: json['street'],
       city: json['city'],
       postalCode: json['postalCode'],
-      vehicleDto: VehicleDto.fromJson(json['vehicleDto']),
+      vehicle: Vehicle.fromJson(json['vehicleDto']),
     );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'email': email,
+      'birthdate': birthdate,
+      'phoneNumber': phoneNumber,
+      'taxPayerNumber': taxPayerNumber,
+      'street': street,
+      'city': city,
+      'postalCode': postalCode,
+      'vehicle': vehicle.toJson(),
+    };
   }
 }

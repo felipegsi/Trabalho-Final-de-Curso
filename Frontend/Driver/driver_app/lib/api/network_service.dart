@@ -151,7 +151,7 @@ class NetworkService {
       'Authorization': 'Bearer $token', // Adicione 'Bearer ' antes do token
     });
     if (response.statusCode == 200) {
-      return Driver.fromJson(json.decode(response.body));
+      return Driver.fromJsonViewProfile(json.decode(response.body));
     } else {
       print('Invalid token');
       Navigator.of(context)

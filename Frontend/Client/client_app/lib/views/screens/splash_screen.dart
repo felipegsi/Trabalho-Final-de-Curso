@@ -1,11 +1,11 @@
+// splash_screen.dart
 import 'dart:async';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:teste_2/views/screens/home/home_screen.dart';
-import '../../services/network_service.dart';
-import 'auth/login_screen.dart';
 import 'package:flutter_svg/flutter_svg.dart';
-
+import 'package:provider/provider.dart';
+import '../../api/auth_api.dart';
+import 'auth/login_screen.dart';
+import 'home/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
@@ -13,7 +13,6 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
-
   @override
   void initState() {
     super.initState();
@@ -21,19 +20,23 @@ class _SplashScreenState extends State<SplashScreen> {
   }
 
   Future<void> _checkIsValidToken() async {
-    final networkService = NetworkService();
-    bool isValid = await networkService.isValidToken();
+    final authApi = Provider.of<AuthApi>(context, listen: false);
+    bool isValid = await authApi.isValidToken();
 
-    Timer(Duration(seconds: 3), () {
-      if (isValid) {// se o token for válido redireciona para a HomeScreen
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => HomeScreen()));
-      } else {// se o token não for válido redireciona para a LoginScreen
-        Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
-      }
-    });
+    if (mounted) {
+      Timer(Duration(seconds: 3), () {
+        if (isValid) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => HomeScreen()),
+          );
+        } else {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => LoginScreen()),
+          );
+        }
+      });
+    }
   }
-
-
 
   @override
   Widget build(BuildContext context) {

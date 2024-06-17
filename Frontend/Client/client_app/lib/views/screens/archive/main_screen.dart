@@ -36,9 +36,9 @@ class _MainScreenState extends State<MainScreen> {
     HomeScreen(),
     EstimateOrderCostScreen(), // Pass the token to EstimateOrderCostScreen
     ProfileScreen(),
-    OrderHistoryScreen(), // Pass the token to OrderHistoryScreen
-    OldLoginScreen(),
-    RegisterScreen(),
+    //OrderHistoryScreen(), // Pass the token to OrderHistoryScreen
+   // OldLoginScreen(),
+    //RegisterScreen(),
     MapScreenCopy(),
 
   ];
