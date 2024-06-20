@@ -3,16 +3,14 @@ class Vehicle {
   String plate;
   String brand;
   String model;
-  double capacity;
-  String vehicleType;
+  String category;
 
   Vehicle({
     required this.year,
     required this.plate,
     required this.brand,
     required this.model,
-    required this.capacity,
-    required this.vehicleType,
+    required this.category,
   });
 
   factory Vehicle.fromJson(Map<String, dynamic> json) {
@@ -21,8 +19,7 @@ class Vehicle {
       plate: json['plate'],
       brand: json['brand'],
       model: json['model'],
-      capacity: json['capacity'],
-      vehicleType: json['vehicleType'],
+      category: json['category'],
     );
   }
 
@@ -32,8 +29,7 @@ class Vehicle {
       'plate': plate,
       'brand': brand,
       'model': model,
-      'capacity': capacity,
-      'vehicleType': vehicleType,
+      'category': category,
     };
   }
 }

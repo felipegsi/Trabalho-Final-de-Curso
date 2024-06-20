@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:teste_2/api/location_api.dart';
 import 'package:teste_2/views/screens/splash_screen.dart';
 
 import 'api/auth_api.dart';
@@ -10,7 +11,7 @@ void main() {
   runApp(
     MultiProvider(
       providers: [
-        Provider<AuthApi>(
+        ChangeNotifierProvider<AuthApi>(
           create: (_) => AuthApi(),
         ),
         ChangeNotifierProvider<ProfileApi>(
@@ -19,11 +20,15 @@ void main() {
         ChangeNotifierProvider<OrderApi>(
           create: (_) => OrderApi(),
         ),
+        ChangeNotifierProvider<LocationApi>(
+          create: (_) => LocationApi(),
+        ),
       ],
       child: MyApp(),
     ),
   );
 }
+
 class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {

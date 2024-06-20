@@ -1,21 +1,20 @@
-// auth_api.dart
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
-class AuthApi {
+class AuthApi with ChangeNotifier {
   final FlutterSecureStorage storage = FlutterSecureStorage();
-  final String baseUrl = 'http://192.168.31.1:8080/client';
+  final String baseUrl = 'http://10.0.2.2:8080/client';
 
   Future<String?> login(String email, String password) async {
     final url = Uri.parse('$baseUrl/login');
     final response = await http.post(url,
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({'email': email, 'password': password}),
-    );
-
+        body: json.encode({'email': email, 'password': password}),
+        headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 200) {
       await storage.write(key: 'token', value: response.body);
+      notifyListeners();
       return response.body;
     } else {
       return null;
@@ -24,17 +23,18 @@ class AuthApi {
 
   Future<void> logout() async {
     await storage.delete(key: 'token');
+    notifyListeners();
   }
 
   Future<bool> isValidToken() async {
     String? token = await storage.read(key: 'token');
-    if (token == null) return false;
-
+    if (token == null) {
+      return false;
+    }
     final url = Uri.parse('$baseUrl/isValidToken');
     final response = await http.get(url, headers: {
       'Authorization': 'Bearer $token',
     });
-
     return response.statusCode == 200;
   }
 
@@ -56,10 +56,21 @@ class AuthApi {
 
     if (response.statusCode == 200) {
       await logout(); // Logout após a exclusão da conta
+      notifyListeners(); // Notificar ouvintes após a exclusão da conta
       return true;
     } else {
       print('Error deleting account: ${response.body}');
       return false;
     }
+  }
+
+  Future<bool> registerDriver(Map<String, dynamic> driverData) async {
+    final url = Uri.parse('$baseUrl/register');
+    final response = await http.post(
+      url,
+      body: json.encode(driverData),
+      headers: {'Content-Type': 'application/json'},
+    );
+    return response.statusCode == 200;
   }
 }

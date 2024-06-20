@@ -1,6 +1,7 @@
 import 'package:teste_2/models/vehicle.dart';
 
 class Driver {
+  final int id;
   final String name;
   final String email;
   final String birthdate;
@@ -8,10 +9,12 @@ class Driver {
   final int taxPayerNumber;
   final String street;
   final String city;
-  final int postalCode;
+  final String postalCode;
+  final String location;
   final Vehicle vehicle;
 
   Driver({
+    required this.id,
     required this.name,
     required this.email,
     required this.birthdate,
@@ -20,11 +23,13 @@ class Driver {
     required this.street,
     required this.city,
     required this.postalCode,
+    required this.location,
     required this.vehicle,
   });
 
   factory Driver.fromJson(Map<String, dynamic> json) {
     return Driver(
+      id: json['id'],
       name: json['name'],
       email: json['email'],
       birthdate: json['birthdate'],
@@ -33,12 +38,14 @@ class Driver {
       street: json['street'],
       city: json['city'],
       postalCode: json['postalCode'],
-      vehicle: Vehicle.fromJson(json['vehicleDto']),
+      location: json['location'],
+      vehicle: Vehicle.fromJson(json['vehicleDto']), // tive problemas aqui, nao alterar
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
+      'id': id,
       'name': name,
       'email': email,
       'birthdate': birthdate,
@@ -47,6 +54,7 @@ class Driver {
       'street': street,
       'city': city,
       'postalCode': postalCode,
+      'location': location,
       'vehicle': vehicle.toJson(),
     };
   }

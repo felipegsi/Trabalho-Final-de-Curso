@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:provider/provider.dart';
 import 'package:teste_2/views/screens/request_order/search_route_drawer.dart';
 import 'package:teste_2/views/screens/home/menu_drawer.dart';
 import '../../../themes/app_theme.dart';
@@ -15,15 +16,81 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController? _mapController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
-  late Future<LatLng> _currentPositionFuture;
+  LatLng? _currentPosition;
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _currentPositionFuture = _determinePosition();
+    _initializeLocation();
   }
 
-  //TODO: COLOCAR MARCADORES DOS DRIVERS QUE ESTAO DISPONIVEIS
+  Future<void> _initializeLocation() async {
+    try {
+      LatLng position = await _determinePosition();
+      setState(() {
+        _currentPosition = position;
+        _isLoading = false;
+      });
+      _moveCameraToCurrentPosition();
+    } catch (error) {
+      setState(() {
+        _isLoading = false;
+      });
+      _showErrorDialog('Erro ao obter localização: $error');
+    }
+  }
+
+  Future<LatLng> _determinePosition() async {
+    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+    if (!serviceEnabled) {
+      throw Exception('Serviço de localização desativado');
+    }
+
+    LocationPermission permission = await Geolocator.checkPermission();
+    if (permission == LocationPermission.denied) {
+      permission = await Geolocator.requestPermission();
+      if (permission == LocationPermission.denied) {
+        throw Exception('Permissão de localização negada');
+      }
+    }
+
+    if (permission == LocationPermission.deniedForever) {
+      throw Exception('Permissão de localização negada permanentemente');
+    }
+
+    Position position = await Geolocator.getCurrentPosition();
+    return LatLng(position.latitude, position.longitude);
+  }
+
+  void _moveCameraToCurrentPosition() {
+    if (_currentPosition != null && _mapController != null) {
+      _mapController!.animateCamera(
+        CameraUpdate.newLatLngZoom(_currentPosition!, 12),
+      );
+    }
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Erro'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -31,33 +98,21 @@ class _HomeScreenState extends State<HomeScreen> {
       endDrawerEnableOpenDragGesture: false,
       body: Stack(
         children: [
-          FutureBuilder<LatLng>(
-            future: _currentPositionFuture,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return Center(child: CircularProgressIndicator());
-              } else if (snapshot.hasError) {
-                return Center(child: Text('Erro ao obter localização'));
-              } else if (!snapshot.hasData) {
-                return Center(child: Text('Localização não disponível'));
-              } else {
-                LatLng _currentPosition = snapshot.data!;
-                return GoogleMap(
-                  onMapCreated: (GoogleMapController controller) {
-                    _mapController = controller;
-                    _mapController?.animateCamera(
-                      CameraUpdate.newLatLng(_currentPosition),
-                    );
-                  },
-                  initialCameraPosition: CameraPosition(
-                    target: LatLng(0, 0), // Valor padrão inicial
-                    zoom: 12,
-                  ),
-                  myLocationEnabled: true,
-                  zoomControlsEnabled: false,
-                );
-              }
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : _currentPosition == null
+              ? const Center(child: Text('Localização não disponível'))
+              : GoogleMap(
+            onMapCreated: (GoogleMapController controller) {
+              _mapController = controller;
+              _moveCameraToCurrentPosition();
             },
+            initialCameraPosition: const CameraPosition(
+              target: LatLng(0, 0), // Valor padrão inicial
+              zoom: 12,
+            ),
+            myLocationEnabled: true,
+            zoomControlsEnabled: false,
           ),
           _buildTopButton(context),
           _buildBottomCard(context),
@@ -65,28 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       drawer: const MenuDrawer(),
     );
-  }
-
-  Future<LatLng> _determinePosition() async {
-    bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      return LatLng(0, 0);
-    }
-
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        return LatLng(0, 0);
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
-      return LatLng(0, 0);
-    }
-
-    Position position = await Geolocator.getCurrentPosition();
-    return LatLng(position.latitude, position.longitude);
   }
 
   Widget _buildTopButton(BuildContext context) {
@@ -106,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> {
       bottom: 35,
       left: 0,
       right: 0,
-      child: Container(
+      child: SizedBox(
         height: 130,
         child: Card(
           margin: EdgeInsets.symmetric(
@@ -121,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 _buildSearchField(context),
-                SizedBox(height: 10),
+                const SizedBox(height: 10),
                 _buildIconRow(),
               ],
             ),
@@ -191,20 +224,21 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
+
   Widget _buildIconRow() {
-    return Container(
+    return SizedBox(
       height: kToolbarHeight,
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
           _buildIconButton(Icons.history, 0),
-          SizedBox(width: 30),
+          const SizedBox(width: 30),
           _buildIconButton(Icons.star, 0),
-          SizedBox(width: 30),
+          const SizedBox(width: 30),
           _buildIconButton(Icons.notifications, 1),
-          SizedBox(width: 30),
+          const SizedBox(width: 30),
           _buildIconButton(Icons.person, 2),
-          SizedBox(width: 30),
+          const SizedBox(width: 30),
           _buildIconButton(Icons.help_outline, 3),
         ],
       ),

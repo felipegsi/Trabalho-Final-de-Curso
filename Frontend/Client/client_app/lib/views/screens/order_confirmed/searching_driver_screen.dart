@@ -1,16 +1,17 @@
-// assign_driver_screen.dart
+// searching_driver_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
+import '../../../api/location_api.dart';
 import '../../../api/order_api.dart';
 import '../../../models/driver.dart';
 import '../../../models/order.dart';
 
 class SearchingDriverScreen extends StatefulWidget {
-  final int orderId;
+  final Order order;
 
-  const SearchingDriverScreen({Key? key, required this.orderId}) : super(key: key);
+  const SearchingDriverScreen({Key? key, required this.order}) : super(key: key);
 
   @override
   _SearchingDriverScreenState createState() => _SearchingDriverScreenState();
@@ -21,19 +22,31 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
   Driver? assignedDriver;
   bool isLoading = true;
 
-  // Coordenadas iniciais para o mapa (substitua pelas coordenadas reais)
-  final LatLng initialLocation = LatLng(-23.5505, -46.6333);
+  late LatLng initialLocation;
+  double? _distance;
 
   @override
   void initState() {
     super.initState();
+    initialLocation = _convertToLatLng(widget.order.origin);
     _assignOrderToDriver();
   }
 
   Future<void> _assignOrderToDriver() async {
     final orderApi = Provider.of<OrderApi>(context, listen: false);
+    final locationService = Provider.of<LocationApi>(context, listen: false);
     try {
-      Driver driver = await orderApi.assignOrderToDriver(widget.orderId);
+      setState(() {
+        isLoading = true;
+      });
+
+      Driver driver = await orderApi.assignOrderToDriver(widget.order.id!);
+
+      // Fetch distance in a separate method to ensure it's executed asynchronously
+      await _fetchDistanceAndUpdateUI(driver);
+
+      _moveCameraToDriver(driver);
+
       setState(() {
         assignedDriver = driver;
         isLoading = false;
@@ -44,6 +57,17 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
       });
       _showErrorDialog('Failed to assign order to driver: $error');
     }
+  }
+
+  Future<void> _fetchDistanceAndUpdateUI(Driver driver) async {
+    final locationService = Provider.of<LocationApi>(context, listen: false);
+    double distance = await locationService.fetchDistance(
+      _convertToLatLng(widget.order.origin),
+      _convertToLatLng(driver.location),
+    );
+    setState(() {
+      _distance = distance;
+    });
   }
 
   void _showErrorDialog(String message) {
@@ -70,11 +94,27 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
     mapController = controller;
   }
 
+  LatLng _convertToLatLng(String coordinates) {
+    List<String> coords = coordinates.split(',');
+    return LatLng(double.parse(coords[0]), double.parse(coords[1]));
+  }
+
+  void _moveCameraToDriver(Driver driver) {
+    if (mapController != null) {
+      mapController.animateCamera(
+        CameraUpdate.newLatLngZoom(
+          _convertToLatLng(driver.location),
+          15.0,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Assign Driver'),
+        title: Text('Searching Driver'),
       ),
       body: Stack(
         children: [
@@ -99,26 +139,22 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
     if (assignedDriver != null) {
       markers.add(Marker(
         markerId: MarkerId('driver'),
-        position: LatLng(
-          //colocar qualquer uma pois o driver nao tem latitude e longitude por enquanto
-//          assignedDriver!.latitude,
-//          assignedDriver!.longitude,
-          -23.5505,
-          -46.6333,
-        ),
+        position: _convertToLatLng(assignedDriver!.location),
         infoWindow: InfoWindow(
           title: 'Driver: ${assignedDriver!.name}',
           snippet: 'Vehicle: ${assignedDriver!.vehicle}',
         ),
       ));
     }
-    // Adicione outros marcadores se necessário
+
+    // Add other markers if needed
+
     return markers;
   }
 
   Widget _buildDriverInfo() {
     return Positioned(
-      bottom: 20.0,
+      bottom: 30.0,
       left: 20.0,
       right: 20.0,
       child: Container(
@@ -138,8 +174,10 @@ class _SearchingDriverScreenState extends State<SearchingDriverScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text('Driver: ${assignedDriver!.name}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text('Vehicle: ${assignedDriver!.vehicle}', style: TextStyle(fontSize: 14)),
-            Text('Distance: 5.2 km', style: TextStyle(fontSize: 14)), // Substitua pela distância real
+            Text('Vehicle: ${assignedDriver!.vehicle.model} ${assignedDriver!.vehicle.brand}', style: TextStyle(fontSize: 14)),
+            Text('Plate: ${assignedDriver!.vehicle.plate}', style: TextStyle(fontSize: 14)),
+            if (_distance != null)
+              Text('Distance: ${_distance!.toStringAsFixed(2)} km', style: TextStyle(fontSize: 14)), // Mostre a distância calculada
           ],
         ),
       ),

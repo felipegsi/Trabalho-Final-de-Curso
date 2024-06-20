@@ -186,7 +186,7 @@ class _OrderCostScreenState extends State<OrderCostScreen> {
                   if (newOrder != null) {
                     Navigator.of(context).push(
                       MaterialPageRoute(
-                        builder: (context) => SearchingDriverScreen(orderId: newOrder.id!),                      ),
+                        builder: (context) => SearchingDriverScreen(order: newOrder),                      ),
                     );
                   } else {
                     _showErrorDialog('Não foi possível confirmar seu pedido. Tente novamente.');
