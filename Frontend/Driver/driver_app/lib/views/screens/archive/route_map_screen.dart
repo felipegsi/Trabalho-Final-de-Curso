@@ -9,8 +9,7 @@ class RouteMapScreen extends StatefulWidget {
   final LatLng destination; // Coordenada de destino para a rota.
 
   // Construtor da classe com as coordenadas de origem e destino necessárias.
-  const RouteMapScreen({Key? key, required this.origin, required this.destination})
-      : super(key: key);
+  const RouteMapScreen({super.key, required this.origin, required this.destination});
 
   @override
   _RouteMapScreenState createState() => _RouteMapScreenState();
@@ -31,14 +30,14 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     markers.add(
       Marker(
         point: widget.origin,
-        child: Icon(Icons.location_on,
+        child: const Icon(Icons.location_on,
             color: Colors.red), // Marcador vermelho para a origem.
       ),
     );
     markers.add(
       Marker(
         point: widget.destination,
-        child: Icon(Icons.location_on,
+        child: const Icon(Icons.location_on,
             color: Colors.blue), // Marcador azul para o destino.
       ),
     );
@@ -79,7 +78,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
         LatLngBounds bounds =
             LatLngBounds.fromPoints([widget.origin, widget.destination]);
         mapController.fitBounds(bounds,
-            options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+            options: const FitBoundsOptions(padding: EdgeInsets.all(50.0)));
       }
     });
   }
@@ -89,7 +88,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
     // Constrói a interface do usuário do mapa com camadas de mapa, marcadores e rotas.
     return Scaffold(
       appBar: AppBar(
-        title: Text('Map Screen'),
+        title: const Text('Map Screen'),
     ),
       body: Stack(
         children: [
@@ -113,7 +112,7 @@ class _RouteMapScreenState extends State<RouteMapScreen> {
             ],
           ),
           // Mostra um indicador de progresso enquanto a rota está sendo carregada.
-          if (isLoading) Center(child: CircularProgressIndicator()),
+          if (isLoading) const Center(child: CircularProgressIndicator()),
         ],
       ),
     );

@@ -31,11 +31,9 @@ ThemeData buildThemeData() {
     colorScheme: baseTheme.colorScheme.copyWith(
       primary: buttonColor,
       secondary: iconColor,
-      background: backgroundColor,
       surface: cardBackgroundColor,
       onPrimary: textColor,
       onSecondary: iconBackgroundColor,
-      onBackground: textColor,
       onSurface: subTextColor,
     ),
     iconTheme: const IconThemeData(

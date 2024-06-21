@@ -5,6 +5,8 @@ import 'dart:convert';
 import 'route_map_screen.dart';
 
 class SearchRoute extends StatefulWidget {
+  const SearchRoute({super.key});
+
   @override
   _SearchRouteState createState() => _SearchRouteState();
 }
@@ -73,19 +75,19 @@ class _SearchRouteState extends State<SearchRoute> {
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.only(
+      borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(20.0),
         topRight: Radius.circular(20.0),
       ),
       child: Scaffold(
-        appBar: AppBar(title: Text('Search Location')),
+        appBar: AppBar(title: const Text('Search Location')),
         body: Column(
           children: [
             Padding(
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 controller: _originController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Origem',
                 ),
                 onTap: () {
@@ -99,7 +101,7 @@ class _SearchRouteState extends State<SearchRoute> {
               padding: const EdgeInsets.all(8.0),
               child: TextField(
                 controller: _destinationController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Destino',
                 ),
                 onTap: () {

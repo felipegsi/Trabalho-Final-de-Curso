@@ -1,62 +1,100 @@
-import 'package:intl/intl.dart';
+// Dentro de /lib/models/order.dart
+import 'package:decimal/decimal.dart';
+import 'client.dart';
+import 'driver.dart';
 
 class Order {
-  final int id;
+  final int? id; // pode ser nulo quando ainda estiver fazendo o pedido
   final String origin;
   final String destination;
-  final double value; // Usando double aqui, Dart não tem BigDecimal
-  final String status; // Usando String para representar o enum, pode ser convertido conforme necessário
-  final DateTime dateTime; // Combinando date e time em um único campo DateTime
-  final String description;
-  final String feedback;
-  final int clientId; // Supondo que você armazene apenas o ID do cliente
-  final String category; // Usando String para representar o enum Category
-  final int driverId; // Supondo que você armazene apenas o ID do motorista
+  final Decimal? value; // Supondo que o valor seja um BigDecimal
+  final String? status; // Adicionei um status para o pedido
+  final String? description;
+  final String? feedback; // inicialmente é nulo quando o utilizador ainda nao efetuou o pedido
+  final String category; // Supondo que a categoria seja uma string
+  // fields for non-motorized category
+  final int? width; // podem ser nulos quando a categoria for motorizada
+  final int? height;
+  final int? length;
+  final double? weight;
+  // fields for motorized category
+  final String? plate; // podem ser nulos quando a categoria não for motorizada
+  final String? model;
+  final String? brand;
+
+  final String? date;
+  final String? time;
+  final Client? client;
+  final Driver? driver;
 
   Order({
-    required this.id,
+    this.id,
     required this.origin,
     required this.destination,
-    required this.value,
-    required this.status,
-    required this.dateTime,
-    this.description = '',
-    this.feedback = '',
-    required this.clientId,
+    this.value,
+    this.status,
+    this.description,
+    this.feedback,
     required this.category,
-    required this.driverId,
+    this.width,
+    this.height,
+    this.length,
+    this.weight,
+    this.plate,
+    this.model,
+    this.brand,
+    this.date,
+    this.time,
+    this.client,
+    this.driver,
   });
-
-  factory Order.fromJson(Map<String, dynamic> json) {
-    return Order(
-      id: json['id'],
-      origin: json['origin'],
-      destination: json['destination'],
-      value: json['value'].toDouble(), // Converte de BigDecimal para double
-      status: json['status'],
-      dateTime: DateTime.parse(json['date'] + "T" + json['time']), // Combina date e time
-      description: json['description'] ?? '',
-      feedback: json['feedback'] ?? '',
-      clientId: json['client']['id'], // Supondo que o cliente é retornado como um objeto
-      category: json['category'],
-      driverId: json['driver']['id'], // Supondo que o motorista é retornado como um objeto
-    );
-  }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'origin': origin,
       'destination': destination,
-      'value': value,
+      'value': value?.toString(),
       'status': status,
-      'date': DateFormat('yyyy-MM-dd').format(dateTime),
-      'time': DateFormat('HH:mm:ss').format(dateTime),
       'description': description,
       'feedback': feedback,
-      'client': {'id': clientId},
       'category': category,
-      'driver': {'id': driverId},
+      'width': width,
+      'height': height,
+      'length': length,
+      'weight': weight,
+      'plate': plate,
+      'model': model,
+      'brand': brand,
+      'date': date,
+      'time': time,
+      'client': client?.toJson(),
+      'driver': driver?.toJson(),
     };
   }
+
+  factory Order.fromJson(Map<String, dynamic> json) {
+    return Order(
+      id: json['id'] != null ? json['id'] as int : null,
+      origin: json['origin'] as String? ?? 'Unknown Origin',
+      destination: json['destination'] as String? ?? 'Unknown Destination',
+      value: json['value'] != null ? Decimal.tryParse(json['value'].toString()) : null,
+      status: json['status'] as String?,
+      description: json['description'] as String?,
+      feedback: json['feedback'] as String?,
+      category: json['category'] as String? ?? 'Unknown Category',
+      width: json['width'] != null ? json['width'] as int : null,
+      height: json['height'] != null ? json['height'] as int : null,
+      length: json['length'] != null ? json['length'] as int : null,
+      weight: json['weight'] != null ? (json['weight'] as num).toDouble() : null,
+      plate: json['plate'] as String?,
+      model: json['model'] as String?,
+      brand: json['brand'] as String?,
+      date: json['date'] as String?,
+      time: json['time'] as String?,
+      client: json['client'] != null ? Client.fromJson(json['client'] as Map<String, dynamic>) : null,
+    //driver: json['driver'] != null ? Driver.fromJson(json['driver'] as Map<String, dynamic>) : null,
+    );
+  }
+
 }

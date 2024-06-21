@@ -1,34 +1,34 @@
 import 'package:flutter/material.dart';
-import 'package:projeto_proj/views/screens/home/order_screen.dart';
-import 'package:projeto_proj/views/screens/home/waiting_order.dart';
-
-import '../../../services/network_service.dart';
-import '../../../models/driver.dart';
+import 'package:provider/provider.dart';
+import '../../../api/profile_api.dart';
 import '../../../themes/app_theme.dart';
 import '../profile/profile_screen.dart';
+import '../archive/order_screen.dart';
+import '../archive/waiting_order.dart';
 
 class MenuDrawer extends StatelessWidget {
-  const MenuDrawer({Key? key}) : super(key: key);
+  const MenuDrawer({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final NetworkService _networkService = NetworkService();
+    // Carrega os dados do perfil na inicialização
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<ProfileApi>(context, listen: false).fetchProfile();
+    });
 
     return Drawer(
-      child: FutureBuilder<Driver?>(
-        future: _networkService.viewProfile(context),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return CircularProgressIndicator();
-          } else if (snapshot.hasError) {
-            print('Error fetching data: ${snapshot.error}');
-            return Center(child: Text('An error occurred: ${snapshot.error}'));
-          }
-          else if (snapshot.data == null) {
-            return Text('No profile data available');
+      child: Consumer<ProfileApi>(
+        builder: (context, profileApi, child) {
+          if (profileApi.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (profileApi.hasError) {
+            return Center(child: Text('An error occurred: ${profileApi.errorMessage}'));
+          } else if (profileApi.driver == null) {
+            return const Center(child: Text('No profile data available'));
           }
 
-          Driver user = snapshot.data!;
+          final driver = profileApi.driver!;
+
           return Container(
             color: backgroundColor, // Assegure que esta cor está definida nos seus temas
             child: ListView(
@@ -36,35 +36,37 @@ class MenuDrawer extends StatelessWidget {
               children: [
                 InkWell(
                   onTap: () {
-                    Navigator.push(context,
-                        MaterialPageRoute(builder: (context) => ProfileScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    );
                   },
                   child: DrawerHeader(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: backgroundColor,
                     ),
                     child: Row(
                       children: [
-                        CircleAvatar(
+                        const CircleAvatar(
                           radius: 30.0,
                           backgroundImage: NetworkImage('https://via.placeholder.com/150'),
                           backgroundColor: Colors.transparent,
                         ),
-                        SizedBox(width: 10.0),
+                        const SizedBox(width: 10.0),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              user.name, // Nome do usuário
-                              style: TextStyle(
+                              driver.name, // Nome do usuário
+                              style: const TextStyle(
                                 color: textColor,
                                 fontSize: 24,
                               ),
                             ),
                             Text(
-                              user.email, // Email do usuário
-                              style: TextStyle(
+                              driver.email, // Email do usuário
+                              style: const TextStyle(
                                 color: subTextColor,
                                 fontSize: 14,
                               ),
@@ -76,73 +78,75 @@ class MenuDrawer extends StatelessWidget {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.payment),
-                  title: Text('Payment'),
+                  leading: const Icon(Icons.payment),
+                  title: const Text('Payment'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.local_offer_outlined),
-                  title: Text('Promotions'),
+                  leading: const Icon(Icons.local_offer_outlined),
+                  title: const Text('Promotions'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.flag_outlined),
-                  title: Text('Subscriptions'),
+                  leading: const Icon(Icons.flag_outlined),
+                  title: const Text('Subscriptions'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.history),
-                  title: Text('My Orders'),
+                  leading: const Icon(Icons.history),
+                  title: const Text('My Orders'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.message),
-                  title: Text('Messages'),
+                  leading: const Icon(Icons.message),
+                  title: const Text('Messages'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.help_outline_outlined),
-                  title: Text('Help'),
+                  leading: const Icon(Icons.help_outline_outlined),
+                  title: const Text('Help'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.border_all),
-                  title: Text('Teste receber pedido'),
+                  leading: const Icon(Icons.border_all),
+                  title: const Text('Teste receber pedido'),
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const OrderScreen()),
+                    );
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.account_tree_outlined),
-                  title: Text('Waiting Order'),
+                  leading: const Icon(Icons.account_tree_outlined),
+                  title: const Text('Waiting Order'),
                   onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => WaitingOrderScreen()));
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const WaitingOrderScreen()),
+                    );
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
-
-
-
-
               ],
             ),
           );

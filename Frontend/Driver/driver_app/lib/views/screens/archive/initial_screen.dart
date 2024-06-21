@@ -32,29 +32,29 @@ class InitialScreen extends StatelessWidget {
             const SizedBox(height: 50),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => LoginScreen()));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const LoginScreen()));
               },
-              child: Text('Login'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black, backgroundColor: Colors.white,
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                   fontSize: 18,
                 ),
-                padding: EdgeInsets.all(15),
+                padding: const EdgeInsets.all(15),
               ),
+              child: const Text('Login'),
             ),
             ElevatedButton(
               onPressed: () {
-                Navigator.of(context).push(MaterialPageRoute(builder: (context) => RegisterScreen()));
+                Navigator.of(context).push(MaterialPageRoute(builder: (context) => const RegisterScreen()));
               },
-              child: Text('Register'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.black, backgroundColor: Colors.white,
-                textStyle: TextStyle(
+                textStyle: const TextStyle(
                   fontSize: 18,
                 ),
-                padding: EdgeInsets.all(15),
+                padding: const EdgeInsets.all(15),
               ),
+              child: const Text('Register'),
             ),
           ],
         ),

@@ -1,17 +1,14 @@
 import 'dart:convert';
-import 'dart:ffi';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
-import 'package:shared_preferences/shared_preferences.dart';
 import '../models/driver.dart';
 import '../models/order.dart';
 import '../views/screens/auth/login_screen.dart';
 
-class NetworkService {
+class NetworkServic {
   // Cria uma instância do FlutterSecureStorage para armazenar e recuperar o token de forma segura
-  final storage = new FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   // URL base para todas as requisições
   final String baseUrl = 'http://10.0.2.2:8080/driver';
@@ -155,7 +152,7 @@ class NetworkService {
     } else {
       print('Invalid token');
       Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+          .pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
       return null;
     }
   }
@@ -244,7 +241,7 @@ class NetworkService {
 
     if (response.statusCode == 200) {
       Navigator.of(context)
-          .pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+          .pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
       return true;
     } else {
       print('Erro ao deletar conta: ${response.body}');
@@ -263,17 +260,17 @@ class NetworkService {
       // O usuário não pode fechar o diálogo tocando fora dele
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Sessão Expirada'),
-          content: Text('Sua sessão expirou. Por favor, faça login novamente.'),
+          title: const Text('Sessão Expirada'),
+          content: const Text('Sua sessão expirou. Por favor, faça login novamente.'),
           actions: <Widget>[
             TextButton(
-              child: Text('Entendido'),
+              child: const Text('Entendido'),
               onPressed: () {
                 // Fecha o diálogo
                 Navigator.of(dialogContext).pop();
                 // Redireciona para a página de login
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => LoginScreen()));
+                    MaterialPageRoute(builder: (_) => const LoginScreen()));
               },
             ),
           ],

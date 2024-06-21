@@ -3,53 +3,68 @@ import 'package:projeto_proj/models/vehicle.dart';
 class Driver {
   final String name;
   final String email;
-  final String password; // Be careful with including sensitive data like passwords
+  final String? password; // Be careful with including sensitive data like passwords
+  final String birthdate;
   final String phoneNumber;
   final int taxPayerNumber;
   final String street;
   final String city;
-  final int postalCode;
-  final double salary;
-  final bool isOnline;
+  final String postalCode; // Update type to String
+  final double? salary;
+  final bool? isOnline; // Ensure nullable type
+  final bool? isBusy; // New attribute
   final Vehicle? vehicle; // Ensure the Vehicle class also has a fromJson constructor if needed
-  final String location;
-  final String birthdate;
+  final String? location;
 
   Driver({
     required this.name,
     required this.email,
-    required this.password,
+    this.password,
+    required this.birthdate,
     required this.phoneNumber,
     required this.taxPayerNumber,
     required this.street,
     required this.city,
     required this.postalCode,
-    required this.salary,
+    this.salary,
     this.isOnline = false,
+    this.isBusy = false, // Default to false
     required this.vehicle,
-    required this.location,
-    required this.birthdate,
+    this.location,
   });
 
   factory Driver.fromJson(Map<String, dynamic> json) {
     return Driver(
-      name: json['name'] as String? ?? 'Default Name',
-      email: json['email'] as String? ?? 'default@example.com',
-      password: json['password'] as String? ?? '',
-      phoneNumber: json['phoneNumber'] as String? ?? 'No Phone',
-      taxPayerNumber: json['taxPayerNumber'] as int? ?? 0,
-      street: json['street'] as String? ?? 'No Street',
-      city: json['city'] as String? ?? 'No City',
-      postalCode: json['postalCode'] as int? ?? 0,
-      salary: (json['salary'] as num?)?.toDouble() ?? 0.0,
-      isOnline: json['isOnline'] as bool? ?? false,
+      name: json['name'],
+      email: json['email'],
+      password: json['password'],
+      phoneNumber: json['phoneNumber'],
+      taxPayerNumber: json['taxPayerNumber'] ,
+      street: json['street'],
+      city: json['city'],
+      postalCode: json['postalCode'], // Update type to String
+      salary: json['salary'],
+      isOnline: json['isOnline'],
+      isBusy: json['isBusy'], // New attribute
       vehicle: json['vehicle'] != null ? Vehicle.fromJson(json['vehicle'] as Map<String, dynamic>) : null,
-      location: json['location'] as String? ?? 'No Location',
-      birthdate: json['birthdate'] as String? ?? 'No Birthdate',
+      location: json['location'],
+      birthdate: json['birthdate'],
     );
   }
 
-
+  factory Driver.fromJsonViewProfile(Map<String, dynamic> json) {
+    return Driver(
+      name: json['name'],
+      email: json['email'],
+      birthdate: json['birthdate'],
+      phoneNumber: json['phoneNumber'],
+      taxPayerNumber: json['taxPayerNumber'] ,
+      street: json['street'],
+      city: json['city'],
+      postalCode: json['postalCode'], // Update type to String
+      vehicle: json['vehicle'] != null ? Vehicle.fromJson(json['vehicle'] as Map<String, dynamic>) : null,
+    );
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -60,13 +75,13 @@ class Driver {
       'taxPayerNumber': taxPayerNumber,
       'street': street,
       'city': city,
-      'postalCode': postalCode,
+      'postalCode': postalCode, // Update type to String
       'salary': salary,
       'isOnline': isOnline,
+      'isBusy': isBusy, // New attribute
       'vehicle': vehicle?.toJson(),
       'location': location,
       'birthdate': birthdate,
     };
   }
-
 }

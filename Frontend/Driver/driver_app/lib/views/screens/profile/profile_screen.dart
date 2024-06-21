@@ -1,24 +1,31 @@
 import 'package:flutter/material.dart';
-import '../../../models/driver.dart';
-import '../../../services/network_service.dart';
 import 'dart:io'; // Necessary for File
-
-import '../auth/login_screen.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:provider/provider.dart';
+import '../../../api/auth_api.dart';
+import '../../../api/profile_api.dart';
+import '../auth/login_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
+
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final NetworkService _networkService = NetworkService();
   XFile? _image;
   final ImagePicker _picker = ImagePicker();
 
   @override
   void initState() {
     super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final profileProvider = Provider.of<ProfileApi>(context, listen: false);
+    await profileProvider.fetchProfile();
   }
 
   Future<void> _pickImage() async {
@@ -36,31 +43,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'Profile',
-          style: TextStyle(color: Colors.white), // Certifique-se de que há contraste suficiente
+          style: TextStyle(color: Colors.white),
         ),
-        backgroundColor: Colors.black, // Exemplo de cor de fundo
+        backgroundColor: Colors.black,
         leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: Colors.white), // Cor do ícone
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
           onPressed: () => Navigator.of(context).pop(),
         ),
       ),
       body: Container(
         color: Colors.white,
-        padding: EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-        child: FutureBuilder<Driver?>(
-          future: _networkService.viewProfile(context),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('An error occurred'));
-            } else if (snapshot.data == null) {
-              return Center(child: Text('No profile data available'));
+        padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
+        child: Consumer<ProfileApi>(
+          builder: (context, profileApi, _) {
+            if (profileApi.isLoading) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (profileApi.hasError) {
+              return Center(child: Text('An error occurred: ${profileApi.errorMessage}'));
+            } else if (profileApi.driver == null) {
+              return const Center(child: Text('No profile data available'));
             }
 
-            var driver = snapshot.data!;
+            var driver = profileApi.driver!;
             return ListView(
               children: [
                 GestureDetector(
@@ -68,31 +74,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   child: CircleAvatar(
                     radius: 50,
                     backgroundImage: _image == null
-                        ? NetworkImage('https://via.placeholder.com/150') as ImageProvider<Object>
+                        ? const NetworkImage('https://via.placeholder.com/150') as ImageProvider<Object>
                         : FileImage(File(_image!.path)) as ImageProvider<Object>,
                     backgroundColor: Colors.transparent,
                   ),
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Text(
                   driver.name,
-                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                  style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   textAlign: TextAlign.center,
                 ),
                 Text(
                   driver.email,
-                  style: TextStyle(fontSize: 18, color: Colors.grey),
+                  style: const TextStyle(fontSize: 18, color: Colors.grey),
                   textAlign: TextAlign.center,
                 ),
-                Divider(),
+                const Divider(),
                 ListTile(
-                  leading: Icon(Icons.phone),
-                  title: Text('Phone Number'),
+                  leading: const Icon(Icons.phone),
+                  title: const Text('Phone Number'),
                   subtitle: Text(driver.phoneNumber),
                 ),
                 ListTile(
-                  leading: Icon(Icons.location_city),
-                  title: Text('City'),
+                  leading: const Icon(Icons.location_city),
+                  title: const Text('City'),
                   subtitle: Text(driver.city),
                 ),
                 logoutButton(),
@@ -107,79 +113,83 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Widget logoutButton() {
     return ListTile(
-      leading: Icon(Icons.exit_to_app),
-      title: Text('Logout'),
+      leading: const Icon(Icons.exit_to_app),
+      title: const Text('Logout'),
       onTap: () => showLogoutConfirmationDialog(),
     );
   }
 
   Widget deleteAccountButton() {
     return ListTile(
-      leading: Icon(Icons.delete_forever),
-      title: Text('Delete Account'),
+      leading: const Icon(Icons.delete_forever),
+      title: const Text('Delete Account'),
       onTap: () => showDeleteConfirmationDialog(),
     );
   }
 
   void showLogoutConfirmationDialog() {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Confirm Logout'),
-            content: Text('Are you sure you want to logout?'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('No'),
-                onPressed: () => Navigator.of(context).pop(),
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Logout'),
+          content: const Text('Are you sure you want to logout?'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.red,
               ),
-              TextButton(
-                  child: Text('Yes'),
-                  style: TextButton.styleFrom(foregroundColor: Colors.white,
-                    backgroundColor: Colors
-                    .red,),
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the dialog
-                    _networkService.logout();
-                    Navigator.of(context).pushReplacement(
-                        MaterialPageRoute(builder: (_) => LoginScreen())
-                    );
-                  }
-              ),
-            ],
-          );
-        }
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                final authProvider = Provider.of<AuthApi>(context, listen: false);
+                await authProvider.logout();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
     );
   }
 
   void showDeleteConfirmationDialog() {
     showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: Text('Confirm Delete Account'),
-            content: Text('Are you sure you want to delete your account? This action cannot be undone.'),
-            actions: <Widget>[
-              TextButton(
-                child: Text('No'),
-
-                onPressed: () => Navigator.of(context).pop(),
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete Account'),
+          content: const Text('Are you sure you want to delete your account? This action cannot be undone.'),
+          actions: <Widget>[
+            TextButton(
+              child: const Text('No'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: Colors.red,
               ),
-              TextButton(
-                  child: Text('Yes'),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Colors.white,
-                    backgroundColor: Colors
-                        .red, // Define a cor de fundo como vermelho
-                  ),
-                  onPressed: () async {
-                    Navigator.of(context).pop(); // Close the dialog
-                    await _networkService.deleteAccount(context);
-                  }
-              ),
-            ],
-          );
-        }
+              onPressed: () async {
+                Navigator.of(context).pop(); // Close the dialog
+                final authProvider = Provider.of<AuthApi>(context, listen: false);
+                await authProvider.deleteAccount();
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Text('Yes'),
+            ),
+          ],
+        );
+      },
     );
   }
 }

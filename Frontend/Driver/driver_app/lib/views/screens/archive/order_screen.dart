@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class OrderScreen extends StatefulWidget {
+  const OrderScreen({super.key});
+
   @override
   _OrderScreenState createState() => _OrderScreenState();
 }
@@ -67,26 +67,26 @@ class _OrderScreenState extends State<OrderScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Flutter WebSocket STOMP'),
+        title: const Text('Flutter WebSocket STOMP'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
             Text('Mensagem de algum outro usuário é: $receivedMessage'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: userIdController,
-              decoration: InputDecoration(labelText: 'ID do usuário destinatário'),
+              decoration: const InputDecoration(labelText: 'ID do usuário destinatário'),
             ),
             TextField(
               controller: messageController,
-              decoration: InputDecoration(labelText: 'Mensagem'),
+              decoration: const InputDecoration(labelText: 'Mensagem'),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             ElevatedButton(
               onPressed: () => sendMessageToUser(userIdController.text, messageController.text),
-              child: Text('Enviar mensagem ao usuário'),
+              child: const Text('Enviar mensagem ao usuário'),
             ),
           ],
         ),

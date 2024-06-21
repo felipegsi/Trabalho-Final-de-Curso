@@ -1,10 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
-import '../auth/register_screen.dart';
-import '../home/home_screen.dart';
-import '../profile/order_history_screen.dart';
-import '../profile/profile_screen.dart';
-
+// Import SharedPreferences
+/*
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
 
@@ -82,4 +77,4 @@ class _MainScreenState extends State<MainScreen> {
       ),
     );
   }
-}
+}*/

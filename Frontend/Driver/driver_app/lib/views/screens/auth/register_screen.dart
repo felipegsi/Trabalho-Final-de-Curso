@@ -1,20 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart'; // Adicione a dependência 'intl' ao seu pubspec.yaml
-import 'package:projeto_proj/services/network_service.dart';
-import 'package:projeto_proj/views/screens/home/home_screen.dart';
+import 'package:provider/provider.dart';
+import '../../../api/auth_api.dart';
+import '../home/home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
+
   @override
-  _RegisterDriverScreenState createState() => _RegisterDriverScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _RegisterDriverScreenState extends State<RegisterScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
-  final TextEditingController _taxPayerNumberController =
-  TextEditingController();
+  final TextEditingController _taxPayerNumberController = TextEditingController();
   final TextEditingController _vehicleYearController = TextEditingController();
   final TextEditingController _vehiclePlateController = TextEditingController();
   final TextEditingController _vehicleBrandController = TextEditingController();
@@ -25,9 +27,10 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
   final TextEditingController _postalCodeController = TextEditingController();
   final TextEditingController _capacityController = TextEditingController();
 
-  String? _selectedVehicleType = 'LIGHT'; // Set a default value or manage the null case
+  String? _selectedVehicleType = 'LIGHT';
 
   final List<String> _vehicleTypes = ['LIGHT', 'HEAVY', 'MOTORCYCLE', 'OTHER', 'TOW'];
+  bool _isLoading = false;
 
   @override
   void dispose() {
@@ -44,13 +47,15 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
     _addressController.dispose();
     _cityController.dispose();
     _postalCodeController.dispose();
+    _capacityController.dispose();
     super.dispose();
   }
 
-  Widget _buildDateField(
-      {required BuildContext context,
-        required TextEditingController controller,
-        required String label}) {
+  Widget _buildDateField({
+    required BuildContext context,
+    required TextEditingController controller,
+    required String label,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: GestureDetector(
@@ -65,9 +70,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
     );
   }
 
-// This method uses the 'intl' package to format the date.
-  Future<void> _selectDate(
-      BuildContext context, TextEditingController controller) async {
+  Future<void> _selectDate(BuildContext context, TextEditingController controller) async {
     final DateTime? pickedDate = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -80,11 +83,12 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
     }
   }
 
-  Widget _buildTextField(
-      {required TextEditingController controller,
-        required String label,
-        TextInputType keyboardType = TextInputType.text,
-        bool obscureText = false}) {
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType keyboardType = TextInputType.text,
+    bool obscureText = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: TextFormField(
@@ -124,7 +128,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
       }).toList(),
       decoration: InputDecoration(
         labelText: 'Tipo de Veículo',
-        labelStyle: TextStyle(color: Colors.grey[800],),
+        labelStyle: TextStyle(color: Colors.grey[800]),
         filled: true,
         fillColor: Colors.white,
         border: OutlineInputBorder(
@@ -136,6 +140,10 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
   }
 
   void _attemptRegister(BuildContext context) async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final Map<String, dynamic> registrationData = {
       'name': _nameController.text,
       'email': _emailController.text,
@@ -149,43 +157,48 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
       'vehicleDto': {
         'year': int.parse(_vehicleYearController.text),
         'plate': _vehiclePlateController.text,
-        'brand': _vehicleBrandController.text, // Corrected to get text
+        'brand': _vehicleBrandController.text,
         'model': _vehicleModelController.text,
         'type': _selectedVehicleType,
-        'capacity': double.tryParse(_capacityController.text) ?? 0, // Assuming capacity is a double, defaulting to 0 if parsing fails
+        'capacity': double.tryParse(_capacityController.text) ?? 0,
       },
     };
 
-    final networkService = NetworkService();
-    bool registrationSuccess =
-    await networkService.registerDriver(registrationData);
+    final authProvider = Provider.of<AuthApi>(context, listen: false);
+    bool registrationSuccess = await authProvider.registerDriver(registrationData);
+
+    setState(() {
+      _isLoading = false;
+    });
 
     if (registrationSuccess) {
-      // Navega para a tela de perfil após o registro bem-sucedido
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
             (Route<dynamic> route) => false,
       );
     } else {
-      // Mostra um diálogo de erro se o registro falhar
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('Error'),
-            content: const Text('Failed to register. Please try again.'),
-            actions: [
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  Navigator.of(context).pop();
-                },
-              ),
-            ],
-          );
-        },
-      );
+      _showErrorDialog();
     }
+  }
+
+  void _showErrorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: const Text('Failed to register. Please try again.'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -193,8 +206,7 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title:
-        const Text('Registar Motorista', style: TextStyle(color: Colors.white)),
+        title: const Text('Registar Motorista', style: TextStyle(color: Colors.white)),
         backgroundColor: Colors.black,
       ),
       body: SingleChildScrollView(
@@ -265,21 +277,24 @@ class _RegisterDriverScreenState extends State<RegisterScreen> {
               _buildTextField(
                 controller: _capacityController,
                 label: 'Capacidade do Veículo',
-                keyboardType: TextInputType.phone,
+                keyboardType: TextInputType.number,
               ),
               const SizedBox(height: 20),
               ElevatedButton(
-                onPressed: () => _attemptRegister(context),
+                onPressed: _isLoading ? null : () => _attemptRegister(context),
                 style: ElevatedButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: Colors.black,
-                  // Text color
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(30.0),
                   ),
-                  padding: EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
                 ),
-                child: const Text('Finalizar'),
+                child: _isLoading
+                    ? const CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                )
+                    : const Text('Finalizar'),
               ),
             ],
           ),
