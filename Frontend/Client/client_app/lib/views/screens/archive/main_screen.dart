@@ -1,16 +1,14 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:teste_2/views/screens/home/home_screen.dart';
-import 'package:teste_2/views/screens/archive/old_login_screen.dart';
 import 'package:teste_2/views/screens/archive/map_screen_copy.dart';
 import 'package:teste_2/views/screens/profile/profile_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import SharedPreferences
-import 'package:teste_2/views/screens/archive/old_register_screen.dart';
 
 import 'estimate_order_costs_screen.dart';
-import '../profile/order_history_screen.dart';
 
 class MainScreen extends StatefulWidget {
+  const MainScreen({super.key});
+
   @override
   _MainScreenState createState() => _MainScreenState();
 }
@@ -33,13 +31,13 @@ class _MainScreenState extends State<MainScreen> {
   }
 
   static List<Widget> _widgetOptions(String? token) => <Widget>[
-    HomeScreen(),
-    EstimateOrderCostScreen(), // Pass the token to EstimateOrderCostScreen
-    ProfileScreen(),
+    const HomeScreen(),
+    const EstimateOrderCostScreen(), // Pass the token to EstimateOrderCostScreen
+    const ProfileScreen(),
     //OrderHistoryScreen(), // Pass the token to OrderHistoryScreen
    // OldLoginScreen(),
     //RegisterScreen(),
-    MapScreenCopy(),
+    const MapScreenCopy(),
 
   ];
 

@@ -13,9 +13,8 @@ public class Vehicle {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne
+    @OneToOne(mappedBy = "vehicle")
     @JsonBackReference
-    @JoinColumn(name = "driver_id")
     private Driver driver;
 
     @Column(name = "year")
@@ -30,23 +29,22 @@ public class Vehicle {
     @Column(name = "model", length = 50)
     private String model;
 
-    @Lob
-    @Column(name = "document_photo")
-    private byte[] documentPhoto;
+    //@Lob
+    //@Column(name = "document_photo")
+  //  private byte[] documentPhoto;
 
-    @Column(nullable = false)
-    private Double capacity;
+//    @Column(nullable = false)
+//    private Double capacity;
 
     @Enumerated(EnumType.STRING)
     private Category category;
-
-    public Vehicle(Category category, int year, String plate, String brand, String model, Object capacity) {
+    public Vehicle(Category category, int year, String plate, String brand, String model) {
         this.category = category;
         this.year = year;
         this.plate = plate;
         this.brand = brand;
         this.model = model;
-        this.capacity = (Double) capacity;
+      //  this.capacity = capacity;
     }
 
     public Vehicle() {

@@ -1,5 +1,6 @@
 package com.project.uber.service.interfac;
 
+import com.project.uber.dtos.DriverDto;
 import com.project.uber.dtos.OrderDto;
 import com.project.uber.enums.Category;
 import com.project.uber.enums.OrderStatus;
@@ -13,24 +14,26 @@ import java.util.List;
 
 public interface OrderService {
 
-    List<BigDecimal> estimateAllCategoryOrderCost(String origin, String destination);
+    public OrderDto saveOrder(OrderDto orderDto, Long clientId);
 
-
-    public Order saveOrder(OrderDto orderDto, Long clientId);
-
-    public List<Order> getClientOrderHistory(Long clientId);
+    OrderDto getOrderDtoById(Long orderId) throws BusinessException;
 
     @Transactional
     void confirmPickUp(Long orderId, Long driverId) throws Exception;
 
-    @Transactional
-    void updateOrderStatus(Long orderId, OrderStatus newStatus, Long driverId) throws Exception;
-
-    List<OrderDto> getDriverOrderHistory(Long driverId);
-
 
     BigDecimal estimateOrderCost(String origin, String destination, Category category,
-                                 int width, int height, int length, float weight) throws BusinessException;
+                                 Integer width, Integer height, Integer length, Float weight) throws BusinessException ;
 
-    Driver assignOrderToDriver(Long orderId);
+    DriverDto assignOrderToDriver(Long orderId);
+
+    // Updates the status of an order to a new specified status, ensuring valid state transitions.
+    @Transactional
+    void pickupOrderStatus(Long orderId) throws Exception;
+
+    @Transactional
+    void deliverOrderStatus(Long orderId, Long driverId) throws Exception;
+
+    @Transactional
+    void cancelledOrderStatus(Long orderId, Long driverId) throws Exception;
 }

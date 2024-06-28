@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:projeto_proj/views/screens/profile/my_deliveries_screen.dart';
 import 'package:provider/provider.dart';
 import '../../../api/profile_api.dart';
 import '../../../themes/app_theme.dart';
 import '../profile/profile_screen.dart';
 import '../archive/order_screen.dart';
-import '../archive/waiting_order.dart';
+import '../archive/map_sample.dart';
 
 class MenuDrawer extends StatelessWidget {
   const MenuDrawer({super.key});
@@ -47,10 +48,17 @@ class MenuDrawer extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const CircleAvatar(
-                          radius: 30.0,
-                          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
-                          backgroundColor: Colors.transparent,
+                        CircleAvatar(
+                          backgroundColor: Colors.black,
+                          radius: 30,
+                          child: Text(
+                            '${driver.name[0]}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                         const SizedBox(width: 10.0),
                         Column(
@@ -103,10 +111,12 @@ class MenuDrawer extends StatelessWidget {
                 ),
                 ListTile(
                   leading: const Icon(Icons.history),
-                  title: const Text('My Orders'),
+                  title: const Text('My Deliveries'),
                   onTap: () {
-                    Navigator.pop(context); // Fecha o drawer
-                    // Adicionar navegação ou função de clique aqui
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const MyDeliveriesScreen()),
+                    );
                   },
                 ),
                 ListTile(
@@ -122,28 +132,6 @@ class MenuDrawer extends StatelessWidget {
                   title: const Text('Help'),
                   onTap: () {
                     Navigator.pop(context); // Fecha o drawer
-                    // Adicionar navegação ou função de clique aqui
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.border_all),
-                  title: const Text('Teste receber pedido'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const OrderScreen()),
-                    );
-                    // Adicionar navegação ou função de clique aqui
-                  },
-                ),
-                ListTile(
-                  leading: const Icon(Icons.account_tree_outlined),
-                  title: const Text('Waiting Order'),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const WaitingOrderScreen()),
-                    );
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),

@@ -1,13 +1,13 @@
+// search_route.dart
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:latlong2/latlong.dart';
-import 'package:teste_2/views/screens/request_order/check_measures.dart';
 import 'dart:convert';
-
-import '../archive/map_screen_copy.dart';
-import 'order_cost_screen.dart';
+import 'check_measures.dart'; // Certifique-se de importar o caminho correto
+import 'package:google_maps_flutter/google_maps_flutter.dart'; // Importa o LatLng correto
 
 class SearchRoute extends StatefulWidget {
+  const SearchRoute({super.key});
+
   @override
   _SearchRouteState createState() => _SearchRouteState();
 }
@@ -17,13 +17,12 @@ class _SearchRouteState extends State<SearchRoute> {
   final TextEditingController _destinationController = TextEditingController();
   final FocusNode _originFocusNode = FocusNode();
 
-  Map<String, double>? _selectedOriginLocation;
-  Map<String, double>? _selectedDestinationLocation;
-
   List<dynamic> _originSuggestions = [];
   List<dynamic> _destinationSuggestions = [];
   bool _showSuggestions = false;
   bool _isOriginFocused = false;
+
+  final String _googleApiKey = 'AIzaSyDWkqwPVu8yCPdeR3ynYX-a8VHco5kS-Ik'; // Substitua pela sua chave de API do Google
 
   @override
   void initState() {
@@ -31,7 +30,7 @@ class _SearchRouteState extends State<SearchRoute> {
     _originController.addListener(() => _onTextChanged(isOrigin: true));
     _destinationController.addListener(() => _onTextChanged(isOrigin: false));
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _originFocusNode.requestFocus(); // Solicita o foco quando a tela é construída
+      _originFocusNode.requestFocus();
     });
   }
 
@@ -43,9 +42,7 @@ class _SearchRouteState extends State<SearchRoute> {
   }
 
   void _onTextChanged({required bool isOrigin}) {
-    if (isOrigin
-        ? _originController.text.isEmpty
-        : _destinationController.text.isEmpty) {
+    if (isOrigin ? _originController.text.isEmpty : _destinationController.text.isEmpty) {
       setState(() => _showSuggestions = false);
     } else {
       fetchSuggestions(
@@ -55,18 +52,19 @@ class _SearchRouteState extends State<SearchRoute> {
   }
 
   Future<void> fetchSuggestions(String input, {required bool isOrigin}) async {
-    final url = Uri.parse('https://nominatim.openstreetmap.org/search?'
-        'q=$input&'
-        'format=json&'
-        'countrycodes=pt');
+    final String url =
+        'https://maps.googleapis.com/maps/api/place/autocomplete/json?input=$input&key=$_googleApiKey&components=country:pt';
+
     try {
-      final response =
-          await http.get(url, headers: {'User-Agent': 'YourAppName/1.0'});
+      final response = await http.get(Uri.parse(url));
       if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
         setState(() {
-          isOrigin
-              ? _originSuggestions = json.decode(response.body)
-              : _destinationSuggestions = json.decode(response.body);
+          if (isOrigin) {
+            _originSuggestions = jsonResponse['predictions'];
+          } else {
+            _destinationSuggestions = jsonResponse['predictions'];
+          }
           _showSuggestions = true;
         });
       } else {
@@ -77,15 +75,53 @@ class _SearchRouteState extends State<SearchRoute> {
     }
   }
 
+  Future<void> fetchPlaceDetails(String placeId, {required bool isOrigin}) async {
+    final String url =
+        'https://maps.googleapis.com/maps/api/place/details/json?place_id=$placeId&key=$_googleApiKey';
+
+    try {
+      final response = await http.get(Uri.parse(url));
+      if (response.statusCode == 200) {
+        final jsonResponse = json.decode(response.body);
+        final location = jsonResponse['result']['geometry']['location'];
+        setState(() {
+          if (isOrigin) {
+            _originController.text = jsonResponse['result']['formatted_address'];
+            _selectedOriginLocation = LatLng(location['lat'], location['lng']);
+          } else {
+            _destinationController.text = jsonResponse['result']['formatted_address'];
+            _selectedDestinationLocation = LatLng(location['lat'], location['lng']);
+            _showSuggestions = false;
+          }
+          if (_selectedOriginLocation != null && _selectedDestinationLocation != null) {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => CheckMeasures(
+                  origin: _selectedOriginLocation!,
+                  destination: _selectedDestinationLocation!,
+                ),
+              ),
+            );
+          }
+        });
+      } else {
+        print('Failed to load place details');
+      }
+    } catch (e) {
+      print('Error fetching place details: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
-      borderRadius: BorderRadius.only(
+      borderRadius: const BorderRadius.only(
         topLeft: Radius.circular(20.0),
         topRight: Radius.circular(20.0),
       ),
       child: Scaffold(
-        appBar: AppBar(title: Text('Search Location')),
+        appBar: AppBar(title: const Text('Search Location')),
         body: Column(
           children: [
             Padding(
@@ -94,13 +130,13 @@ class _SearchRouteState extends State<SearchRoute> {
                 children: [
                   TextField(
                     controller: _originController,
-                    focusNode: _originFocusNode, // Adiciona o FocusNode ao TextField
+                    focusNode: _originFocusNode,
                     decoration: const InputDecoration(
                       labelText: 'Origin',
-                      hintText: 'Enter destination address',
-                      prefixIcon: Icon(Icons.location_on),  // Ícone representativo à esquerda do campo
-                      border: OutlineInputBorder(),  // Borda que envolve o campo de texto
-                      focusedBorder: OutlineInputBorder(  // Borda personalizada quando o campo está focado
+                      hintText: 'Enter origin address',
+                      prefixIcon: Icon(Icons.location_on),
+                      border: OutlineInputBorder(),
+                      focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.black, width: 2.0),
                       ),
                     ),
@@ -110,13 +146,13 @@ class _SearchRouteState extends State<SearchRoute> {
                       });
                     },
                   ),
-                  SizedBox(height: 10),  // Espaço entre os campos de texto
+                  const SizedBox(height: 10),
                   TextField(
                     controller: _destinationController,
                     decoration: const InputDecoration(
                       labelText: 'Destination',
                       hintText: 'Enter destination address',
-                      prefixIcon: Icon(Icons.flag),  // Ícone diferente para o campo de destino
+                      prefixIcon: Icon(Icons.flag),
                       border: OutlineInputBorder(),
                       focusedBorder: OutlineInputBorder(
                         borderSide: BorderSide(color: Colors.black, width: 2.0),
@@ -133,63 +169,26 @@ class _SearchRouteState extends State<SearchRoute> {
             ),
             _showSuggestions
                 ? Expanded(
-                    child: Card(
-                      color: Colors.white,
-                      margin: const EdgeInsets.all(8.0),
-                      // shape: RoundedRectangleBorder(
-                      // borderRadius: BorderRadius.circular(0.0),  // Arredonda os cantos do Card
-                      //),
-                      //elevation: 5.0,  // Adiciona sombra para um efeito elevado
-                      shadowColor: Colors.grey.withOpacity(0.0),  // Define a cor e a transparência da sombra
-                      child: ListView.builder(
-                        itemCount: _isOriginFocused ? _originSuggestions.length : _destinationSuggestions.length,
-                        itemBuilder: (context, index) {
-                          var suggestion = _isOriginFocused ? _originSuggestions[index] : _destinationSuggestions[index];
-                          return ListTile(
-                            leading: Icon(Icons.map),  // Ícone à esquerda de cada sugestão
-                            title: Text(
-                              suggestion['display_name'],
-                              style: TextStyle(fontWeight: FontWeight.bold),  // Texto em negrito para o nome da localização
-                            ),
-                            subtitle: Text(
-                              'Lat: ${suggestion['lat']}, Lon: ${suggestion['lon']}',  // Coordenadas formatadas
-                              style: TextStyle(color: Colors.grey[600]),  // Cor do texto do subtítulo
-
-                            ),
-                            onTap: () {
-                              setState(() {
-                                if (_isOriginFocused) {
-                                  _originController.text = suggestion['display_name'];
-                                  _selectedOriginLocation = {
-                                    'latitude': double.parse(suggestion['lat']),
-                                    'longitude': double.parse(suggestion['lon'])
-                                  };
-                                } else {
-                                  _destinationController.text = suggestion['display_name'];
-                                  _selectedDestinationLocation = {
-                                    'latitude': double.parse(suggestion['lat']),
-                                    'longitude': double.parse(suggestion['lon'])
-                                  };
-                                  _showSuggestions = false;
-                                }
-                                if (_selectedOriginLocation != null && _selectedDestinationLocation != null) {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => CheckMeasures(
-                                        origin: LatLng(_selectedOriginLocation!['latitude']!, _selectedOriginLocation!['longitude']!),
-                                        destination: LatLng(_selectedDestinationLocation!['latitude']!, _selectedDestinationLocation!['longitude']!),
-                                      ),
-                                    ),
-                                  );
-                                }
-                              });
-                            },
-                          );
+                child: Card(
+                  color: Colors.white,
+                  margin: const EdgeInsets.all(8.0),
+                  child: ListView.builder(
+                    itemCount: _isOriginFocused ? _originSuggestions.length : _destinationSuggestions.length,
+                    itemBuilder: (context, index) {
+                      var suggestion = _isOriginFocused ? _originSuggestions[index] : _destinationSuggestions[index];
+                      return ListTile(
+                        leading: const Icon(Icons.map),
+                        title: Text(
+                          suggestion['description'],
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        onTap: () {
+                          fetchPlaceDetails(suggestion['place_id'], isOrigin: _isOriginFocused);
                         },
-                      ),
-                    )
-
+                      );
+                    },
+                  ),
+                )
             )
                 : Container(),
           ],
@@ -197,4 +196,7 @@ class _SearchRouteState extends State<SearchRoute> {
       ),
     );
   }
+
+  LatLng? _selectedOriginLocation;
+  LatLng? _selectedDestinationLocation;
 }

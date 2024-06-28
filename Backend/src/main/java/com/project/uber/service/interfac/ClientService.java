@@ -20,6 +20,8 @@ public interface ClientService {
 
     Client getClientByEmail(String email);
 
+    public List<OrderDto> getClientOrderHistory(Long clientId);
+
     void changePassword(Long clientId, String oldPassword, String newPassword);
 
     @Transactional

@@ -121,7 +121,7 @@ class _Copy extends State<Copy> {
 
         // Ajusta o mapa para mostrar ambos os marcadores.
         LatLngBounds bounds = LatLngBounds.fromPoints(markers.map((marker) => marker.point).toList());
-        mapController.fitBounds(bounds, options: FitBoundsOptions(padding: EdgeInsets.all(50.0)));
+        mapController.fitBounds(bounds, options: const FitBoundsOptions(padding: EdgeInsets.all(50.0)));
       }
     });
   }

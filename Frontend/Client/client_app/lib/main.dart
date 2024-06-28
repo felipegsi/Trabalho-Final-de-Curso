@@ -24,15 +24,17 @@ void main() {
           create: (_) => LocationApi(),
         ),
       ],
-      child: MyApp(),
+      child: const MyApp(),
     ),
   );
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       //theme: ,
       //darkTheme: ,
       home: SplashScreen(),

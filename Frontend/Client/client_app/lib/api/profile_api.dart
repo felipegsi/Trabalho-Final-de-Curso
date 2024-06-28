@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import '../models/client.dart';
 
 class ProfileApi with ChangeNotifier {
-  final FlutterSecureStorage storage = FlutterSecureStorage();
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String baseUrl = 'http://192.168.31.1:8080/client';
   Client? _client;
 

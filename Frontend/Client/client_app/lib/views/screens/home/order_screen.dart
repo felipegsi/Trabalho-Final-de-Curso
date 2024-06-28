@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:stomp_dart_client/stomp.dart';
 import 'package:stomp_dart_client/stomp_config.dart';
 import 'package:stomp_dart_client/stomp_frame.dart';
-import 'dart:convert';
-import 'package:http/http.dart' as http;
 
 class OrderScreen extends StatefulWidget {
+  const OrderScreen({super.key});
+
   @override
   _OrderScreenState createState() => _OrderScreenState();
 }
@@ -61,11 +61,11 @@ class _OrderScreenState extends State<OrderScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            Text(
+            const Text(
               'Mensagem recebida:',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text(receivedMessage.isNotEmpty ? receivedMessage : 'Nenhuma mensagem recebida.'),
           ],
         ),

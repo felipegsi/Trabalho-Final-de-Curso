@@ -10,7 +10,7 @@ class Driver {
   final String street;
   final String city;
   final String postalCode;
-  final String location;
+  String location;
   final Vehicle vehicle;
 
   Driver({

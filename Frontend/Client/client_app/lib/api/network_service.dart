@@ -1,20 +1,19 @@
 import 'dart:convert';
 import 'dart:ffi';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 import '../models/client.dart';
 import '../models/driver.dart';
 import '../models/order.dart';
-import '../models/location.dart';
+import '../models/travel_information.dart';
 import 'package:decimal/decimal.dart';
 
 import '../views/screens/auth/login_screen.dart';
 
 class NetworkService {
   // Cria uma instância do FlutterSecureStorage para armazenar e recuperar o token de forma segura
-  final storage = new FlutterSecureStorage();
+  final storage = const FlutterSecureStorage();
 
   // URL base para todas as requisições
   final String baseUrl = 'http://192.168.31.1:8080/client'; //10.0.2.2
@@ -92,17 +91,17 @@ class NetworkService {
       barrierDismissible: false, // O usuário não pode fechar o diálogo tocando fora dele
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          title: Text('Sessão Expirada'),
-          content: Text('Sua sessão expirou. Por favor, faça login novamente.'),
+          title: const Text('Sessão Expirada'),
+          content: const Text('Sua sessão expirou. Por favor, faça login novamente.'),
           actions: <Widget>[
             TextButton(
-              child: Text('Entendido'),
+              child: const Text('Entendido'),
               onPressed: () {
                 // Fecha o diálogo
                 Navigator.of(dialogContext).pop();
                 // Redireciona para a página de login
                 Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (_) => LoginScreen()));
+                    MaterialPageRoute(builder: (_) => const LoginScreen()));
               },
             ),
           ],
@@ -131,7 +130,7 @@ class NetworkService {
       return Client.fromJson(json.decode(response.body));
     }else {
       print('Invalid token');
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
       return null;
     }
   }
@@ -161,7 +160,7 @@ class NetworkService {
 
 
 
-  Future<List<Decimal>> estimateAllCategoryOrderCost(Location location) async {
+  Future<List<Decimal>> estimateAllCategoryOrderCost(TravelInformation location) async {
     String? token = await storage.read(key: 'token');
     if (token == null) {
       throw Exception('No token found');
@@ -263,7 +262,7 @@ class NetworkService {
     });
 
     if (response.statusCode == 200) {
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => LoginScreen()));
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const LoginScreen()));
       return true;
     } else {
       print('Erro ao deletar conta: ${response.body}');

@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../../enums/category.dart';
-import '../../../api/network_service.dart';
 import '../../../models/order.dart';
-import 'package:decimal/decimal.dart';
 
 class EstimateOrderCostScreen extends StatefulWidget {
+  const EstimateOrderCostScreen({super.key});
+
   @override
   _EstimateOrderCostScreenState createState() =>
       _EstimateOrderCostScreenState();
@@ -98,9 +98,9 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Estimar Custo da Encomenda')),
+      appBar: AppBar(title: const Text('Estimar Custo da Encomenda')),
       body: _isSubmitting
-          ? Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
               padding: const EdgeInsets.all(16.0),
               child: Form(
@@ -111,7 +111,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
                     TextFormField(
                       controller: originController,
                       decoration:
-                          InputDecoration(labelText: 'Origem (lat,lng)'),
+                          const InputDecoration(labelText: 'Origem (lat,lng)'),
                       validator: (value) => (value == null || value.isEmpty)
                           ? 'Origem é obrigatória'
                           : null,
@@ -119,7 +119,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
                     TextFormField(
                       controller: destinationController,
                       decoration:
-                          InputDecoration(labelText: 'Destino (lat,lng)'),
+                          const InputDecoration(labelText: 'Destino (lat,lng)'),
                       validator: (value) => (value == null || value.isEmpty)
                           ? 'Destino é obrigatório'
                           : null,
@@ -128,7 +128,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
 
                     TextFormField(
                       controller: categoryController,
-                      decoration: InputDecoration(labelText: 'Categoria'),
+                      decoration: const InputDecoration(labelText: 'Categoria'),
                       validator: (value) {
                         if (value == null || value.isEmpty) {
                           return 'Categoria é obrigatória';
@@ -140,7 +140,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
                     ),
                     TextFormField(
                       controller: widthController,
-                      decoration: InputDecoration(labelText: 'Largura'),
+                      decoration: const InputDecoration(labelText: 'Largura'),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -153,7 +153,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
                     ),
                     TextFormField(
                       controller: heightController,
-                      decoration: InputDecoration(labelText: 'Altura'),
+                      decoration: const InputDecoration(labelText: 'Altura'),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -166,7 +166,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
                     ),
                     TextFormField(
                       controller: lengthController,
-                      decoration: InputDecoration(labelText: 'Comprimento'),
+                      decoration: const InputDecoration(labelText: 'Comprimento'),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -179,7 +179,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
                     ),
                     TextFormField(
                       controller: weightController,
-                      decoration: InputDecoration(labelText: 'Peso'),
+                      decoration: const InputDecoration(labelText: 'Peso'),
                       keyboardType: TextInputType.number,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -193,7 +193,7 @@ class _EstimateOrderCostScreenState extends State<EstimateOrderCostScreen> {
 
                     ElevatedButton(
                       onPressed: _submitForm,
-                      child: Text('Submeter'),
+                      child: const Text('Submeter'),
                     ),
                     if (_estimatedCost != null) ...[
                       Padding(

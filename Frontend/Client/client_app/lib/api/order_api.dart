@@ -6,17 +6,14 @@ import 'package:decimal/decimal.dart';
 import 'package:flutter/material.dart';
 import '../models/driver.dart';
 import '../models/order.dart';
-import '../models/location.dart';
+import '../models/travel_information.dart';
 
 class OrderApi with ChangeNotifier {
-  final FlutterSecureStorage storage = FlutterSecureStorage();
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String baseUrl = 'http://192.168.31.1:8080/client';
-  List<Order> _orders = [];
-
-  List<Order> get orders => _orders;
 
   // Método para buscar histórico de pedidos
-  Future<void> fetchOrderHistory() async {
+  Future<List<Order>> getOrderHistory() async {
     String? token = await storage.read(key: 'token');
     if (token == null) throw Exception('No token found');
 
@@ -27,8 +24,7 @@ class OrderApi with ChangeNotifier {
 
     if (response.statusCode == 200) {
       Iterable json = jsonDecode(response.body);
-      _orders = json.map((orderJson) => Order.fromJson(orderJson)).toList();
-      notifyListeners();
+      return json.map((orderJson) => Order.fromJson(orderJson)).toList();
     } else {
       throw Exception('Failed to load order history: ${response.body}');
     }
@@ -56,6 +52,49 @@ class OrderApi with ChangeNotifier {
     }
   }
 
+  //metodo para buscar a localização do motorista
+  Future<String> getDriverLocation(int driverId) async {
+    String? token = await storage.read(key: 'token');
+    if (token == null) throw Exception('No token found');
+    final url = Uri.parse('$baseUrl/getDriverLocation/$driverId');
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print('\n\nResponse:' + response.body + '\n\n');
+      return response.body;
+    } else {
+      throw Exception('Failed to getDriverLocation: ${response.body}');
+    }
+  }
+
+  //metodo para buscar a localização do motorista
+  Future<TravelInformation> getTravelInformation(int driverId, int orderId) async {
+    String? token = await storage.read(key: 'token');
+    if (token == null) throw Exception('No token found');
+    final url = Uri.parse('$baseUrl/getTravelInformation/$driverId/$orderId');
+    final response = await http.get(
+      url,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print('\n\nResponse:' + response.body + '\n\n');
+      return TravelInformation.fromJson(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to getDriverLocation: ${response.body}');
+    }
+  }
+
+
   // Método para estimar custo do pedido
   Future<Decimal> estimateOrderCost(Order order) async {
     String? token = await storage.read(key: 'token');
@@ -78,7 +117,7 @@ class OrderApi with ChangeNotifier {
     }
   }
 
-  // Método para estimar custos de todas as categorias de pedido
+ /* // Método para estimar custos de todas as categorias de pedido
   Future<List<Decimal>> estimateAllCategoryOrderCost(Location location) async {
     String? token = await storage.read(key: 'token');
     if (token == null) throw Exception('No token found');
@@ -101,7 +140,7 @@ class OrderApi with ChangeNotifier {
     } else {
       throw Exception('Failed to estimate order cost: ${response.body}');
     }
-  }
+  }*/
 
 
 

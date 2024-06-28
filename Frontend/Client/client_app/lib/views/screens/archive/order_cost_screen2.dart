@@ -6,7 +6,7 @@ import 'package:latlong2/latlong.dart';
 import 'package:open_route_service/open_route_service.dart';
 import 'package:teste_2/views/screens/home/check_measures.dart';
 
-import '../../../models/location.dart';
+import '../../../models/travel_information.dart';
 import '../../../models/order.dart';
 import '../../../services/network_service.dart';
 

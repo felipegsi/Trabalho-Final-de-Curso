@@ -1,12 +1,15 @@
 package com.project.uber.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 
+import java.time.LocalDate;
 import java.util.Collection;
 
 //modelmapper -> mapear os objetos
@@ -23,6 +26,8 @@ public abstract class User implements UserDetails {
     private String email;
     @Column(nullable = false)
     private String password;
+    @Column(name = "birthdate")
+    private String birthdate;
     @Column(nullable = false, unique = true)
     private String phoneNumber;
     @Column(nullable = false, unique = true)
@@ -32,7 +37,8 @@ public abstract class User implements UserDetails {
     @Column(nullable = false, length = 50)
     private String city;
     @Column(nullable = false, length = 20)
-    private int postalCode;
+    private String postalCode;
+
 
     //@Transient //saved in the database as a blob, but not as a column, only saved in the front-end
     //private byte[] profileImage;
@@ -41,11 +47,12 @@ public abstract class User implements UserDetails {
     //private RoleEnum role;
 
     public User(String name, String email, String password,
-                String phoneNumber, int taxPayerNumber,
-                String street, String city, int postalCode) {
+                String birthdate, String phoneNumber, int taxPayerNumber,
+                String street, String city, String postalCode) {
         this.name = name;
         this.email = email;
         this.password = password;
+        this.birthdate = birthdate;
         this.phoneNumber = phoneNumber;
         this.taxPayerNumber = taxPayerNumber;
         this.street = street;

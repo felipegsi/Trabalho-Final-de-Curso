@@ -1,18 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:provider/provider.dart';
+import 'package:teste_2/views/screens/profile/order_history_screen.dart';
 import 'package:teste_2/views/screens/request_order/search_route_drawer.dart';
 import 'package:teste_2/views/screens/home/menu_drawer.dart';
 import '../../../themes/app_theme.dart';
+import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
 }
-
+// TODO : COLOCAR MARCADORES DOS DRIVERS A VOLTA
 class _HomeScreenState extends State<HomeScreen> {
   GoogleMapController? _mapController;
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
@@ -66,7 +67,7 @@ class _HomeScreenState extends State<HomeScreen> {
   void _moveCameraToCurrentPosition() {
     if (_currentPosition != null && _mapController != null) {
       _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(_currentPosition!, 12),
+        CameraUpdate.newLatLngZoom(_currentPosition!, 15),
       );
     }
   }
@@ -108,8 +109,8 @@ class _HomeScreenState extends State<HomeScreen> {
               _moveCameraToCurrentPosition();
             },
             initialCameraPosition: const CameraPosition(
-              target: LatLng(0, 0), // Valor padrão inicial
-              zoom: 12,
+              target: LatLng(38.758072, -9.153414), // Valor padrão inicial
+              zoom: 15,
             ),
             myLocationEnabled: true,
             zoomControlsEnabled: false,
@@ -170,13 +171,13 @@ class _HomeScreenState extends State<HomeScreen> {
         showModalBottomSheet(
           context: context,
           isScrollControlled: true,
-          builder: (context) => FractionallySizedBox(
+          builder: (context) => const FractionallySizedBox(
             heightFactor: 0.95,
             child: SearchRoute(),
           ),
         );
       },
-      child: Container(
+      child: SizedBox(
         height: 40,
         width: double.infinity,
         child: Stack(
@@ -204,7 +205,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
                       horizontal: 16.0, vertical: 5.0),
-                  shape: StadiumBorder(),
+                  shape: const StadiumBorder(),
                 ),
                 child: const Row(
                   mainAxisSize: MainAxisSize.min,
@@ -231,13 +232,13 @@ class _HomeScreenState extends State<HomeScreen> {
       child: ListView(
         scrollDirection: Axis.horizontal,
         children: [
-          _buildIconButton(Icons.history, 0),
+          _buildIconHistoryButton(Icons.history, 0),
           const SizedBox(width: 30),
           _buildIconButton(Icons.star, 0),
           const SizedBox(width: 30),
           _buildIconButton(Icons.notifications, 1),
           const SizedBox(width: 30),
-          _buildIconButton(Icons.person, 2),
+          _buildIconProfileButton(Icons.person, 2),
           const SizedBox(width: 30),
           _buildIconButton(Icons.help_outline, 3),
         ],
@@ -260,4 +261,49 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
     );
   }
+
+  Widget _buildIconProfileButton(IconData icon, int index) {
+    return Container(
+      width: 60,
+      decoration: BoxDecoration(
+        color: iconBackgroundColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: IconButton(
+        iconSize: 30,
+        icon: Icon(icon),
+        color: iconColor,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildIconHistoryButton(IconData icon, int index) {
+    return Container(
+      width: 60,
+      decoration: BoxDecoration(
+        color: iconBackgroundColor,
+        borderRadius: BorderRadius.circular(30),
+      ),
+      child: IconButton(
+        iconSize: 30,
+        icon: Icon(icon),
+        color: iconColor,
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => OrderHistoryScreen()),
+          );
+        },
+      ),
+    );
+  }
+
+
+
 }

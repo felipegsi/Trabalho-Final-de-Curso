@@ -35,8 +35,8 @@ class _SplashScreenState extends State<SplashScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text('Sessão Expirada'),
-              content: const Text('Sua sessão expirou. Por favor, faça login novamente.'),
+              title: const Text('Session expired'),
+              content: const Text('Your session has expired. Please log in again.'),
               actions: [
                 TextButton(
                   child: const Text('OK'),

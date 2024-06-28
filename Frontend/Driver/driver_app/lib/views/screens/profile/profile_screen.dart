@@ -71,12 +71,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
               children: [
                 GestureDetector(
                   onTap: _pickImage,
-                  child: CircleAvatar(
+                  child:  CircleAvatar(
+                    backgroundColor: Colors.black,
                     radius: 50,
-                    backgroundImage: _image == null
-                        ? const NetworkImage('https://via.placeholder.com/150') as ImageProvider<Object>
-                        : FileImage(File(_image!.path)) as ImageProvider<Object>,
-                    backgroundColor: Colors.transparent,
+                    child: Text(
+                      '${driver.name[0]}',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 45,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 20),

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:latlong2/latlong.dart';
-import 'package:teste_2/views/screens/request_order/order_cost_screen.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'order_cost_screen.dart';
 
 class CheckMeasures extends StatefulWidget {
   final LatLng origin;
   final LatLng destination;
 
-  const CheckMeasures({Key? key, required this.origin, required this.destination}) : super(key: key);
+  const CheckMeasures({super.key, required this.origin, required this.destination});
 
   @override
   _CheckMeasuresState createState() => _CheckMeasuresState();
@@ -15,12 +15,12 @@ class CheckMeasures extends StatefulWidget {
 class _CheckMeasuresState extends State<CheckMeasures> {
   final _formKey = GlobalKey<FormState>();
   String _categoryType = 'Small';
-  Map<String, TextEditingController> _attributes = {};
+  final Map<String, TextEditingController> _attributes = {};
 
   Map<String, Map<String, double>> categoryLimits = {
-    'Small': {'width': 60, 'height': 60, 'length': 60, 'weight': 10},
-    'Medium': {'width': 120, 'height': 120, 'length': 120, 'weight': 50},
-    'Large': {'width': 200, 'height': 200, 'length': 200, 'weight': 100},
+    'Small': {'width': 40, 'height': 40, 'length': 40, 'weight': 10},
+    'Medium': {'width': 100, 'height': 100, 'length': 100, 'weight': 30},
+    'Large': {'width': 150, 'height': 150, 'length': 150, 'weight': 70},
     'Motorized': {},
   };
 
@@ -31,8 +31,10 @@ class _CheckMeasuresState extends State<CheckMeasures> {
   }
 
   void _initializeAttributes() {
-    const fields = ['Plate', 'Model', 'Brand', 'Weight', 'Length', 'Height', 'Width', 'Description'];
-    fields.forEach((field) => _attributes[field] = TextEditingController());
+    const fields = ['Weight', 'Length', 'Height', 'Width', 'Description'];
+    for (var field in fields) {
+      _attributes[field] = TextEditingController();
+    }
   }
 
   @override
@@ -45,22 +47,22 @@ class _CheckMeasuresState extends State<CheckMeasures> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Check Measures', style: TextStyle(color: Colors.black)),
+        title: const Text('Check Measures', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 1,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
-        padding: EdgeInsets.all(20.0),
+        padding: const EdgeInsets.all(20.0),
         child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildDropdown(),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ..._buildDynamicFields(),
-              SizedBox(height: 40),
+              const SizedBox(height: 40),
               _submitButton(),
             ],
           ),
@@ -76,8 +78,8 @@ class _CheckMeasuresState extends State<CheckMeasures> {
 
     List<Widget> fields = [];
     configs.forEach((key, icon) {
-      fields.add(_buildTextField(key, '${key} (${key == 'Weight' ? 'kg' : 'cm'})', icon));
-      fields.add(SizedBox(height: 20));
+      fields.add(_buildTextField(key, '$key (${key == 'Weight' ? 'kg' : 'cm'})', icon));
+      fields.add(const SizedBox(height: 20));
     });
 
     fields.add(_buildTextField('Description', 'Description', Icons.description_outlined));
@@ -90,13 +92,13 @@ class _CheckMeasuresState extends State<CheckMeasures> {
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
-        border: OutlineInputBorder(),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.deepPurpleAccent, width: 2.0),
+        border: const OutlineInputBorder(),
+        focusedBorder: const OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black87, width: 2.0),
         ),
       ),
-      keyboardType: categoryLimits[_categoryType]!.containsKey(key) ? TextInputType.number : TextInputType.text,
-      validator: (value) => _validateField(value, key),
+      keyboardType: categoryLimits[_categoryType]!.containsKey(key.toLowerCase()) ? TextInputType.number : TextInputType.text,
+      validator: (value) => _validateField(value, key.toLowerCase()),
     );
   }
 
@@ -112,14 +114,22 @@ class _CheckMeasuresState extends State<CheckMeasures> {
   Widget _buildDropdown() {
     return DropdownButtonFormField<String>(
       value: _categoryType,
-      decoration: InputDecoration(
+      decoration: const InputDecoration(
         labelText: 'Category Type',
         border: OutlineInputBorder(),
         focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: Colors.deepPurpleAccent, width: 2.0),
+          borderSide: BorderSide(color: Colors.black87, width: 2.0),
         ),
       ),
-      onChanged: (newValue) => setState(() => _categoryType = newValue!),
+      onChanged: (newValue) {
+        setState(() {
+          _categoryType = newValue!;
+          // Clear values when the category changes
+          _attributes.forEach((key, controller) {
+            controller.clear();
+          });
+        });
+      },
       items: ['Small', 'Medium', 'Large', 'Motorized']
           .map((value) => DropdownMenuItem<String>(value: value, child: Text(value)))
           .toList(),
@@ -138,23 +148,22 @@ class _CheckMeasuresState extends State<CheckMeasures> {
               attributeValues[key] = controller.text; // Use o texto do controlador, não o controlador
             });
 
-            // Navega para RouteMapScreen passando os valores dos atributos
+            // Navega para OrderCostScreen passando os valores dos atributos
             Navigator.push(context, MaterialPageRoute(builder: (context) => OrderCostScreen(
-              origin: widget.origin,
-              destination: widget.destination,
+              origin: LatLng(widget.origin.latitude, widget.origin.longitude),
+              destination: LatLng(widget.destination.latitude, widget.destination.longitude),
               categoryType: _categoryType,
               attributes: attributeValues, // Passa os valores, não os controladores
             )));
           }
         },
-        child: Text('Submit'),
         style: ElevatedButton.styleFrom(
           foregroundColor: Colors.white,
-          backgroundColor: Colors.deepPurple,
-          padding: EdgeInsets.symmetric(horizontal: 50, vertical: 20),
+          backgroundColor: Colors.black87,
+          padding: const EdgeInsets.symmetric(horizontal: 50, vertical: 20),
         ),
+        child: const Text('Submit'),
       ),
     );
   }
-
 }

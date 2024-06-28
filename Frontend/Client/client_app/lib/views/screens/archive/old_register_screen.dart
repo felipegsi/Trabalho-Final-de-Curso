@@ -1,9 +1,3 @@
-import 'package:flutter/material.dart';
-import 'package:teste_2/views/screens/archive/main_screen.dart';
-import '../../../models/client.dart';
-import '../../../api/network_service.dart';
-import '../../../widgets/custom_button.dart';
-import 'old_login_screen.dart';
 /*
 class RegisterScreen extends StatefulWidget {
   @override

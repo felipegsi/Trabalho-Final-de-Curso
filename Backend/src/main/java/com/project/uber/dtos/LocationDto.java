@@ -6,7 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class LocationDto {
-    private String origin;
-    private String destination;
+    private String latitude;
+    private String longitude;
 
 }

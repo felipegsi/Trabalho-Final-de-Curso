@@ -4,7 +4,7 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
 
 class AuthApi with ChangeNotifier {
-  final FlutterSecureStorage storage = FlutterSecureStorage();
+  final FlutterSecureStorage storage = const FlutterSecureStorage();
   final String baseUrl = 'http://10.0.2.2:8080/client';
 
   Future<String?> login(String email, String password) async {
@@ -64,11 +64,11 @@ class AuthApi with ChangeNotifier {
     }
   }
 
-  Future<bool> registerDriver(Map<String, dynamic> driverData) async {
+  Future<bool> registerClient(Map<String, dynamic> clientData) async {
     final url = Uri.parse('$baseUrl/register');
     final response = await http.post(
       url,
-      body: json.encode(driverData),
+      body: json.encode(clientData),
       headers: {'Content-Type': 'application/json'},
     );
     return response.statusCode == 200;

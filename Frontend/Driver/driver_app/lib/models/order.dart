@@ -8,7 +8,7 @@ class Order {
   final String origin;
   final String destination;
   final Decimal? value; // Supondo que o valor seja um BigDecimal
-  final String? status; // Adicionei um status para o pedido
+  String? status; // Adicionei um status para o pedido
   final String? description;
   final String? feedback; // inicialmente é nulo quando o utilizador ainda nao efetuou o pedido
   final String category; // Supondo que a categoria seja uma string
@@ -68,8 +68,8 @@ class Order {
       'brand': brand,
       'date': date,
       'time': time,
-      'client': client?.toJson(),
-      'driver': driver?.toJson(),
+      'clientDto': client?.toJson(),
+      'driverDto': driver?.toJson(),
     };
   }
 
@@ -92,8 +92,8 @@ class Order {
       brand: json['brand'] as String?,
       date: json['date'] as String?,
       time: json['time'] as String?,
-      client: json['client'] != null ? Client.fromJson(json['client'] as Map<String, dynamic>) : null,
-    //driver: json['driver'] != null ? Driver.fromJson(json['driver'] as Map<String, dynamic>) : null,
+      client: json['clientDto'] != null ? Client.fromJson(json['clientDto'] as Map<String, dynamic>) : null,
+      driver: json['driverDto'] != null ? Driver.fromJson(json['driverDto'] as Map<String, dynamic>) : null,
     );
   }
 

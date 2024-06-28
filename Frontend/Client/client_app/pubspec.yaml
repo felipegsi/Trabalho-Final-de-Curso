@@ -52,6 +52,13 @@ dependencies:
   google_maps_flutter: ^2.6.1
   pretty_http_logger: ^1.0.3
   connectivity_plus: ^5.0.2
+  flutter_polyline_points: ^2.0.0
+  url_launcher: ^6.3.0
+
+
+
+
+
 
 
 dev_dependencies:
@@ -110,3 +117,4 @@ flutter:
     - assets/images/
     - assets/images/logo.png
     - assets/images/logo-svg.svg
+    - assets/images/car-vector.svg

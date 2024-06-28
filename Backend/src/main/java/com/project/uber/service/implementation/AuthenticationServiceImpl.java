@@ -4,7 +4,9 @@ import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.TokenExpiredException;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.project.uber.infra.exceptions.BusinessException;
 import com.project.uber.model.Client;
 
 import com.project.uber.model.Driver;
@@ -49,11 +51,14 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     @Override
     public String getClientTokenJwt(AuthDto authDto) {
         Client client = clientRepository.findByEmail(authDto.email());
+        if (client == null) {
+            throw new UsernameNotFoundException("Invalid credentials.");
+        }
         return generateClientTokenJwt(client);
     }
 
     // This method generates a JWT token for a client. It uses the client's email as the subject of the token,
-// and includes the client's ID as a claim. The token is signed with a secret key and has an expiration date.
+    // and includes the client's ID as a claim. The token is signed with a secret key and has an expiration date.
     public String generateClientTokenJwt(Client client) {
         try {
             Algorithm algorithm = Algorithm.HMAC256("my-secret");
@@ -80,8 +85,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .verify(token)
                     .getSubject();
 
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Error when trying to validate the token! Exception: " + exception.getMessage());
+        } catch (TokenExpiredException ex) {
+            throw new BusinessException("Error: " + ex.getMessage());
         }
     }
 
@@ -101,8 +106,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             return jwt.getClaim("clientId").asLong();
 
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Error when trying to validate the token! Exception: " + exception.getMessage());
+        } catch (TokenExpiredException ex) {
+            throw new BusinessException("Error: " + ex.getMessage());
         }
     }
 
@@ -134,8 +139,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .withClaim("driverId", driver.getId())
                     .withExpiresAt(generateExpirationDate())
                     .sign(algorithm);
-        } catch (JWTCreationException exception) {
-            throw new RuntimeException("Error when trying to validate the token! Exception: " + exception.getMessage());
+        } catch (TokenExpiredException ex) {
+            throw new BusinessException("Error: " + ex.getMessage());
         }
     }
 
@@ -150,8 +155,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     .verify(token)
                     .getSubject();
 
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Error when trying to validate the token! Exception: " + exception.getMessage());
+        } catch (TokenExpiredException ex) {
+            throw new BusinessException("Error: " + ex.getMessage());
         }
     }
 
@@ -171,8 +176,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
             return jwt.getClaim("driverId").asLong();
 
-        } catch (JWTVerificationException exception) {
-            throw new RuntimeException("Error when trying to validate the token! Exception: " + exception.getMessage());
+        } catch (TokenExpiredException ex) {
+            throw new BusinessException("Error: " + ex.getMessage());
         }
     }
 

@@ -8,7 +8,7 @@ class Order {
   final String origin;
   final String destination;
   final Decimal? value; // Supondo que o valor seja um BigDecimal
-  final String? status; // Adicionei um status para o pedido
+  String? status; // Adicionei um status para o pedido
   final String? description;
   final String? feedback; // inicialmente é nulo quando o utilizador ainda nao efetuou o pedido
   final String category; // Supondo que a categoria seja uma string

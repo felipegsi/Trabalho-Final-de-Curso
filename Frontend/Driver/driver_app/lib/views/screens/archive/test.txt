@@ -1,0 +1,132 @@
+
+  //TODO : EMBAIXO DO APP BAR NO CENTRO COLOCAR UMA LABEL COM UMA MENSAGEM INDICANDO O STATUS DO PEDIDO
+  Widget _buildOrderDetails(Order order) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center, // Alinhamento ao centro
+      children: [
+        // Duração com ícone
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(FontAwesomeIcons.clock, size: 16),
+            const SizedBox(width: 5),
+            Text(
+              duration,
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        // Distância com ícone
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(FontAwesomeIcons.route, size: 16),
+            const SizedBox(width: 5),
+            Text(
+              '${distance.toStringAsFixed(2)} km',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 5),
+        // Status com ícone
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(FontAwesomeIcons.circleInfo, size: 16),
+            const SizedBox(width: 5),
+            Text(
+              '${order.status}',
+              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        // Peso com ícone
+        if (order.weight != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(FontAwesomeIcons.weight, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                'Weight: ${order.weight} kg',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        if (order.width != null && order.height != null && order.length != null)
+          const SizedBox(height: 5),
+        // Dimensões com ícone
+        if (order.width != null && order.height != null && order.length != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(FontAwesomeIcons.cube, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                'Dimensions: ${order.width} x ${order.height} x ${order.length} cm',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        if (order.plate != null) const SizedBox(height: 5),
+        // Placa do veículo com ícone
+        if (order.plate != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(FontAwesomeIcons.car, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                'Vehicle Plate: ${order.plate}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        if (order.brand != null && order.model != null)
+          const SizedBox(height: 5),
+        // Marca e modelo do veículo com ícone
+        if (order.brand != null && order.model != null)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(FontAwesomeIcons.car, size: 16),
+              const SizedBox(width: 5),
+              Text(
+                '${order.brand} - ${order.model}',
+                style: const TextStyle(fontSize: 14),
+              ),
+            ],
+          ),
+        const SizedBox(height: 10), // Espaçamento antes do botão
+        // Botão de confirmação
+        if (distance < 0.700) // Se a distância for menor que 700 metros
+          if (order.status == 'ACCEPTED') pickupButton() else deliveredButton()
+      ],
+    );
+  }
+
+
+  ElevatedButton(
+                  onPressed: () {
+                    // Lógica para o botão "Arrive"
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 40, vertical: 15),
+                  ),
+                  child: Text(
+                    'Arrive',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),

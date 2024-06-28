@@ -1,0 +1,45 @@
+
+  Widget _buildDriverInfo() {
+    return Positioned(
+      bottom: 30.0,
+      left: 20.0,
+      right: 20.0,
+      child: Container(
+        padding: const EdgeInsets.all(15.0),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10.0),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black26,
+              blurRadius: 10.0,
+              spreadRadius: 1.0,
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Driver: ${assignedDriver!.name}', style: const TextStyle(
+                fontSize: 16, fontWeight: FontWeight.bold)),
+            Text('Vehicle: ${assignedDriver!.vehicle.model} ${assignedDriver!
+                .vehicle.brand}', style: const TextStyle(fontSize: 14)),
+            Text('Plate: ${assignedDriver!.vehicle.plate}',
+                style: const TextStyle(fontSize: 14)),
+            ValueListenableBuilder<double?>(
+              valueListenable: distanceNotifier,
+              builder: (context, distance, child) {
+                if (distance != null) {
+                  return Text('Distance: ${distance.toStringAsFixed(2)} km',
+                      style: const TextStyle(fontSize: 14));
+                }
+                return Container();
+              },
+            ),
+            Text('Order Status: ${orderUpdate.status}',
+                style: const TextStyle(fontSize: 14)),
+          ],
+        ),
+      ),
+    );
+  }

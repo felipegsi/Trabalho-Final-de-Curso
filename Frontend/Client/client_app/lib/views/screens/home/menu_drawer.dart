@@ -1,16 +1,16 @@
 // menu_drawer.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:teste_2/views/screens/profile/order_history_screen.dart';
 
 import '../../../api/profile_api.dart';
 import '../../../models/client.dart';
 import '../../../themes/app_theme.dart';
-import '../order_confirmed/searching_driver_screen.dart';
 import '../profile/profile_screen.dart';
 import '../home/order_screen.dart';
 
 class MenuDrawer extends StatefulWidget {
-  const MenuDrawer({Key? key}) : super(key: key);
+  const MenuDrawer({super.key});
 
   @override
   _MenuDrawerState createState() => _MenuDrawerState();
@@ -34,7 +34,7 @@ class _MenuDrawerState extends State<MenuDrawer> {
       child: Consumer<ProfileApi>(
         builder: (context, profileApi, child) {
           if (profileApi.client == null) {
-            return Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator());
           }
 
           Client user = profileApi.client!;
@@ -47,35 +47,42 @@ class _MenuDrawerState extends State<MenuDrawer> {
                   onTap: () {
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => ProfileScreen()),
+                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
                     );
                   },
                   child: DrawerHeader(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: backgroundColor,
                     ),
                     child: Row(
                       children: [
-                        CircleAvatar(
-                          radius: 30.0,
-                          backgroundImage: NetworkImage('https://via.placeholder.com/150'),
-                          backgroundColor: Colors.transparent,
+                         CircleAvatar(
+                          backgroundColor: Colors.black,
+                          radius: 30,
+                          child: Text(
+                            '${user.name[0]}',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 30,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
-                        SizedBox(width: 10.0),
+                        const SizedBox(width: 10.0),
                         Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
                               user.name,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: textColor,
                                 fontSize: 24,
                               ),
                             ),
                             Text(
                               user.email,
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: subTextColor,
                                 fontSize: 14,
                               ),
@@ -87,58 +94,50 @@ class _MenuDrawerState extends State<MenuDrawer> {
                   ),
                 ),
                 ListTile(
-                  leading: Icon(Icons.payment),
-                  title: Text('Payment'),
+                  leading: const Icon(Icons.payment),
+                  title: const Text('Payment'),
                   onTap: () {
                     Navigator.pop(context);
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.local_offer_outlined),
-                  title: Text('Promotions'),
+                  leading: const Icon(Icons.local_offer_outlined),
+                  title: const Text('Promotions'),
                   onTap: () {
                     Navigator.pop(context);
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.flag_outlined),
-                  title: Text('Subscriptions'),
+                  leading: const Icon(Icons.flag_outlined),
+                  title: const Text('Subscriptions'),
                   onTap: () {
                     Navigator.pop(context);
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.history),
-                  title: Text('My Orders'),
+                  leading: const Icon(Icons.history),
+                  title: const Text('My Orders'),
+                  onTap: () {
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => OrderHistoryScreen()));
+                    // Adicionar navegação ou função de clique aqui
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.message),
+                  title: const Text('Messages'),
                   onTap: () {
                     Navigator.pop(context);
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),
                 ListTile(
-                  leading: Icon(Icons.message),
-                  title: Text('Messages'),
+                  leading: const Icon(Icons.help_outline_outlined),
+                  title: const Text('Help'),
                   onTap: () {
                     Navigator.pop(context);
-                    // Adicionar navegação ou função de clique aqui
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.help_outline_outlined),
-                  title: Text('Help'),
-                  onTap: () {
-                    Navigator.pop(context);
-                    // Adicionar navegação ou função de clique aqui
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.border_all),
-                  title: Text('Teste receber pedido'),
-                  onTap: () {
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => OrderScreen()));
                     // Adicionar navegação ou função de clique aqui
                   },
                 ),

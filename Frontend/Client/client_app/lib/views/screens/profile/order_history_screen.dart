@@ -1,34 +1,44 @@
 // order_history_screen.dart
+
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+
 import '../../../api/order_api.dart';
 import '../../../models/order.dart';
-/*
+import 'order_details_screen.dart';
+
 class OrderHistoryScreen extends StatefulWidget {
   @override
   _OrderHistoryScreenState createState() => _OrderHistoryScreenState();
 }
 
 class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
-  Future<List<Order>>? _orderHistory;
+  late Future<List<Order>> _orderHistory;
 
   @override
   void initState() {
     super.initState();
-    _loadOrderHistory();
+    _orderHistory = _loadOrderHistory();
   }
 
-  Future<void> _loadOrderHistory() async {
+  Future<List<Order>> _loadOrderHistory() async {
     final orderApi = Provider.of<OrderApi>(context, listen: false);
-    try {
-      final orders = await orderApi.fetchOrderHistory();
-      setState(() {
-        _orderHistory = Future.value(orders);
-      });
-    } catch (error) {
-      setState(() {
-        _orderHistory = Future.error(error);
-      });
+    return await orderApi.getOrderHistory();
+  }
+
+  Icon _getCategoryIcon(String category) {
+    switch (category) {
+      case 'SMALL':
+        return Icon(Icons.motorcycle, color: Colors.white);
+      case 'MEDIUM':
+        return Icon(Icons.directions_car, color: Colors.white);
+      case 'LARGE':
+        return Icon(Icons.local_shipping, color: Colors.white);
+      case 'MOTORIZED':
+        return Icon(Icons.train, color: Colors.white);
+      default:
+        return Icon(Icons.help_outline, color: Colors.white);
     }
   }
 
@@ -37,6 +47,8 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('Order History'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
       ),
       body: FutureBuilder<List<Order>>(
         future: _orderHistory,
@@ -54,23 +66,41 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
               itemBuilder: (context, index) {
                 Order order = orders[index];
                 return Card(
+                  color: Colors.grey[200],
+                  margin: EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
                   child: ListTile(
-                    title: Text('Order #${order.id}'),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('From: ${order.origin}'),
-                        Text('To: ${order.destination}'),
-                        Text('Category: ${order.category}'),
-                        if (order.width != null) Text('Width: ${order.width}'),
-                        if (order.height != null) Text('Height: ${order.height}'),
-                        if (order.length != null) Text('Length: ${order.length}'),
-                        if (order.weight != null) Text('Weight: ${order.weight}'),
-                        if (order.value != null) Text('Value: ${order.value}'),
-                        if (order.status != null) Text('Status: ${order.status}'),
-                        if (order.date != null) Text('Date: ${order.date}'),
-                      ],
+                    leading: CircleAvatar(
+                      backgroundColor: Colors.black87,
+                      child: _getCategoryIcon(order.category),
                     ),
+                    title: Text(
+                      'Order ${order.id}',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontSize: 16.0,
+                          fontWeight: FontWeight.bold),
+                    ),
+                    subtitle: Text(
+                      order.status ?? 'Unknown Status',
+                      style: TextStyle(color: Colors.black),
+                    ),
+                    trailing: Text(
+                      order.value != null
+                          ? '€${order.value!.toStringAsFixed(2)}'
+                          : '€0.00',
+                      style: TextStyle(
+                          color: Colors.black,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14.0),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => OrderDetailsScreen(order: order),
+                        ),
+                      );
+                    },
                   ),
                 );
               },
@@ -81,4 +111,3 @@ class _OrderHistoryScreenState extends State<OrderHistoryScreen> {
     );
   }
 }
-*/

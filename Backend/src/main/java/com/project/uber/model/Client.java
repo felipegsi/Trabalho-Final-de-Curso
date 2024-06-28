@@ -1,5 +1,6 @@
 package com.project.uber.model;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -16,16 +17,14 @@ import lombok.Setter;
 public class Client extends User {
 
     @JsonIgnore
-    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "client", cascade = CascadeType.ALL)// mappedBy = "client" indica que a relação é bidirecional
     private List<Order> orders;
 
-    public Client(String name, String email, String password,
+    public Client(String name, String email, String password, String birthdate,
                   String phoneNumber, int taxPayerNumber, String street,
-                  String city, int postalCode) {
-        super(name, email, password, phoneNumber, taxPayerNumber, street,
-                city, postalCode);
+                  String city, String postalCode) {
+        super(name, email, password, birthdate, phoneNumber,
+                taxPayerNumber, street, city, postalCode);
     }
-
-
 
 }

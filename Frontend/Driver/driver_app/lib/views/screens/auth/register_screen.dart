@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Adicione a dependência 'intl' ao seu pubspec.yaml
+import 'package:intl/intl.dart'; // Add the dependency 'intl' to your pubspec.yaml
+import 'package:projeto_proj/views/screens/auth/login_screen.dart';
 import 'package:provider/provider.dart';
 import '../../../api/auth_api.dart';
 import '../home/home_screen.dart';
@@ -16,20 +17,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _birthdateController = TextEditingController();
+  final TextEditingController _phoneNumberController = TextEditingController();
   final TextEditingController _taxPayerNumberController = TextEditingController();
+  final TextEditingController _streetController = TextEditingController();
+  final TextEditingController _cityController = TextEditingController();
+  final TextEditingController _postalCodeController = TextEditingController();
+  final TextEditingController _vehicleCategoryController = TextEditingController();
   final TextEditingController _vehicleYearController = TextEditingController();
   final TextEditingController _vehiclePlateController = TextEditingController();
   final TextEditingController _vehicleBrandController = TextEditingController();
   final TextEditingController _vehicleModelController = TextEditingController();
-  final TextEditingController _phoneNumberController = TextEditingController();
-  final TextEditingController _addressController = TextEditingController();
-  final TextEditingController _cityController = TextEditingController();
-  final TextEditingController _postalCodeController = TextEditingController();
-  final TextEditingController _capacityController = TextEditingController();
 
-  String? _selectedVehicleType = 'LIGHT';
-
-  final List<String> _vehicleTypes = ['LIGHT', 'HEAVY', 'MOTORCYCLE', 'OTHER', 'TOW'];
   bool _isLoading = false;
 
   @override
@@ -38,16 +36,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _emailController.dispose();
     _passwordController.dispose();
     _birthdateController.dispose();
+    _phoneNumberController.dispose();
     _taxPayerNumberController.dispose();
+    _streetController.dispose();
+    _cityController.dispose();
+    _postalCodeController.dispose();
+    _vehicleCategoryController.dispose();
     _vehicleYearController.dispose();
     _vehiclePlateController.dispose();
     _vehicleBrandController.dispose();
     _vehicleModelController.dispose();
-    _phoneNumberController.dispose();
-    _addressController.dispose();
-    _cityController.dispose();
-    _postalCodeController.dispose();
-    _capacityController.dispose();
     super.dispose();
   }
 
@@ -101,40 +99,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
             borderRadius: BorderRadius.circular(4.0),
           ),
           labelStyle: TextStyle(
-            color: Colors.grey[800],
-            fontSize: 16.0,
-          ),
+              color: Colors.grey[800],
+              fontSize: 16.0),
         ),
         keyboardType: keyboardType,
         obscureText: obscureText,
         style: const TextStyle(color: Colors.black, fontSize: 18.0),
-      ),
-    );
-  }
-
-  Widget _buildDropdownButton() {
-    return DropdownButtonFormField<String>(
-      value: _selectedVehicleType,
-      onChanged: (String? newValue) {
-        setState(() {
-          _selectedVehicleType = newValue!;
-        });
-      },
-      items: _vehicleTypes.map<DropdownMenuItem<String>>((String value) {
-        return DropdownMenuItem<String>(
-          value: value,
-          child: Text(value),
-        );
-      }).toList(),
-      decoration: InputDecoration(
-        labelText: 'Tipo de Veículo',
-        labelStyle: TextStyle(color: Colors.grey[800]),
-        filled: true,
-        fillColor: Colors.white,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(10.0),
-          borderSide: BorderSide.none,
-        ),
       ),
     );
   }
@@ -151,16 +121,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
       'password': _passwordController.text,
       'phoneNumber': _phoneNumberController.text,
       'taxPayerNumber': int.parse(_taxPayerNumberController.text),
-      'street': _addressController.text,
+      'street': _streetController.text,
       'city': _cityController.text,
-      'postalCode': int.parse(_postalCodeController.text),
-      'vehicleDto': {
+      'postalCode': _postalCodeController.text,
+      'vehicle': {
+        'category': _vehicleCategoryController.text,
         'year': int.parse(_vehicleYearController.text),
         'plate': _vehiclePlateController.text,
         'brand': _vehicleBrandController.text,
         'model': _vehicleModelController.text,
-        'type': _selectedVehicleType,
-        'capacity': double.tryParse(_capacityController.text) ?? 0,
       },
     };
 
@@ -173,7 +142,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
     if (registrationSuccess) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => const HomeScreen()),
+        MaterialPageRoute(builder: (context) => const LoginScreen()),
             (Route<dynamic> route) => false,
       );
     } else {
@@ -206,8 +175,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.grey[200],
       appBar: AppBar(
-        title: const Text('Registar Motorista', style: TextStyle(color: Colors.white)),
-        backgroundColor: Colors.black,
+        title: const Text('Register Driver', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
       ),
       body: SingleChildScrollView(
         child: Container(
@@ -216,68 +185,65 @@ class _RegisterScreenState extends State<RegisterScreen> {
             children: [
               _buildTextField(
                 controller: _nameController,
-                label: 'Nome Completo',
+                label: 'Name',
               ),
               _buildDateField(
                 context: context,
                 controller: _birthdateController,
-                label: 'Data de Nascimento',
+                label: 'Birthdate',
               ),
               _buildTextField(
                 controller: _emailController,
-                label: 'E-mail',
+                label: 'Email',
                 keyboardType: TextInputType.emailAddress,
               ),
               _buildTextField(
                 controller: _passwordController,
-                label: 'Senha',
+                label: 'Password',
                 obscureText: true,
               ),
               _buildTextField(
-                controller: _taxPayerNumberController,
-                label: 'Número de Identificação Fiscal',
-                keyboardType: TextInputType.number,
-              ),
-              _buildDropdownButton(),
-              _buildTextField(
                 controller: _phoneNumberController,
-                label: 'Número de Telefone',
+                label: 'Phone Number',
                 keyboardType: TextInputType.phone,
               ),
               _buildTextField(
-                controller: _addressController,
-                label: 'Morada',
-              ),
-              _buildTextField(
-                controller: _cityController,
-                label: 'Cidade',
-              ),
-              _buildTextField(
-                controller: _postalCodeController,
-                label: 'Código Postal',
+                controller: _taxPayerNumberController,
+                label: 'Tax Payer Number',
                 keyboardType: TextInputType.number,
               ),
               _buildTextField(
+                controller: _streetController,
+                label: 'Street',
+              ),
+              _buildTextField(
+                controller: _cityController,
+                label: 'City',
+              ),
+              _buildTextField(
+                controller: _postalCodeController,
+                label: 'Postal Code',
+              ),
+              _buildTextField(
+                controller: _vehicleCategoryController,
+                label: 'Vehicle Category',
+              ),
+              _buildTextField(
                 controller: _vehicleYearController,
-                label: 'Ano do Veículo',
+                label: 'Vehicle Year',
                 keyboardType: TextInputType.number,
               ),
               _buildTextField(
                 controller: _vehiclePlateController,
-                label: 'Placa do Veículo',
+                label: 'Vehicle Plate',
               ),
               _buildTextField(
                 controller: _vehicleBrandController,
-                label: 'Marca do Veículo',
+                label: 'Vehicle Brand',
               ),
               _buildTextField(
                 controller: _vehicleModelController,
-                label: 'Modelo do Veículo',
-              ),
-              _buildTextField(
-                controller: _capacityController,
-                label: 'Capacidade do Veículo',
-                keyboardType: TextInputType.number,
+                label: 'Vehicle Model',
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -294,7 +260,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ? const CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                 )
-                    : const Text('Finalizar'),
+                    : const Text('Register'),
               ),
             ],
           ),

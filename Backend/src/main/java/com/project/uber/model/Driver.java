@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-
 import java.time.LocalDate;
 
 @EqualsAndHashCode(callSuper = true)
@@ -17,7 +16,7 @@ public class Driver extends User {
     // @Column(name = "criminalRecord")//estava dando erro aqui por causa do tipo de dado
     // private byte[] criminalRecord; // Confirmado como byte[] para armazenar uma imagem
     @Column(name = "salary")
-    private double salary; // Alterado para BigDecimal
+    private double salary; // Alterado para double
 
     @Column(name = "is_online")
     @JsonProperty(value = "is_online", access = JsonProperty.Access.WRITE_ONLY, defaultValue = "false")
@@ -25,24 +24,28 @@ public class Driver extends User {
     @Column(name = "is_busy")
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY, defaultValue = "false")
     private Boolean isBusy = false; // Indica se o motorista está ocupado com um pedido
-    @OneToOne(mappedBy = "driver", cascade = CascadeType.ALL)//cascade para quando deletar um driver, deletar o veículo também
+
+    @OneToOne(cascade = CascadeType.ALL)
+    @JoinColumn(name = "vehicle_id")
     @JsonBackReference
     private Vehicle vehicle;
 
     @Column(name = "location")
     private String location;
 
-    @Column(name = "birthdate")
-    private LocalDate birthdate;
-
 
     public Driver() {
     }
 
-    public Driver(String name, String email, LocalDate birthdate, String password, String phoneNumber, Integer taxPayerNumber,
-                  String street, String city, Integer postalCode) {
-        super(name, email, password, phoneNumber, taxPayerNumber, street, city, postalCode);
-        this.birthdate = birthdate;
+    public Driver(String name, String email, String password, String birthdate,
+                  String phoneNumber, int taxPayerNumber,
+                  String street, String city,  String postalCode,
+                  double salary, Vehicle vehicle, String location) {// esses ultimos 3 atributos nao estao no Driver
+        super(name, email, password, birthdate, phoneNumber,
+                taxPayerNumber, street, city, postalCode);
+        this.salary = salary;
+        this.vehicle = vehicle;
+        this.location = location;
     }
 
     @Override
@@ -52,9 +55,7 @@ public class Driver extends User {
                 ", salary=" + salary +
                 ", isOnline=" + isOnline +
                 ", isBusy=" + isBusy +
-                ", vehicleId=" + vehicle.getId() +
-                ", location='" + location + '\'' +
-                ", birthdate=" + birthdate +
-                '}';
+                ", vehicleId=" + (vehicle != null ? vehicle.getId() : "No vehicle") +
+                ", location='" + location;
     }
 }

@@ -11,6 +11,7 @@ public class ResponseStorageImpl implements ResponseStorage {
 
     private final Map<Long, Map<Long, CompletableFuture<Boolean>>> responses = new ConcurrentHashMap<>();
 
+
     @Override
     public void saveResponse(Long driverId, Long orderId, Boolean response) {
         Map<Long, CompletableFuture<Boolean>> driverResponses = responses.computeIfAbsent(driverId, k -> new ConcurrentHashMap<>());
@@ -25,7 +26,7 @@ public class ResponseStorageImpl implements ResponseStorage {
         try {
             return future.get(timeoutInSeconds, TimeUnit.SECONDS);
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
-            throw e;
+            return false;
         } finally {
             driverResponses.remove(orderId);
             if (driverResponses.isEmpty()) {

@@ -1,7 +1,6 @@
 package com.project.uber.controller;
 
 import com.project.uber.dtos.*;
-import com.project.uber.enums.Category;
 import com.project.uber.infra.exceptions.BusinessException;
 import com.project.uber.model.Client;
 import com.project.uber.model.Driver;
@@ -10,6 +9,7 @@ import com.project.uber.service.implementation.EmailServiceImpl;
 import com.project.uber.service.interfac.AuthenticationService;
 import com.project.uber.service.interfac.ClientService;
 
+import com.project.uber.service.interfac.DriverService;
 import com.project.uber.service.interfac.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -47,6 +47,8 @@ public class ClientController {
     private EmailServiceImpl emailService;
     @Autowired
     private OrderService orderService;
+    @Autowired
+    private DriverService driverService;
 
     // This method handles POST requests to "/register" and registers a new client.
     @PostMapping("/register") // This annotation marks the method to accept POST requests on the path "/register".
@@ -74,7 +76,7 @@ public class ClientController {
             return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
             // Handles authentication failures.
-            throw new BusinessException("Invalid credentials.");
+            throw new BusinessException("Error: " + e.getMessage());
         }
     }
 
@@ -112,26 +114,26 @@ public class ClientController {
         return new ResponseEntity<>(newClient, HttpStatus.OK);
     }
 
-    // This method estimates the cost of an order based on its details.
-    @PostMapping("/estimateAllCategoryOrderCost") // Handles POST requests to "/estimateOrderCost".
-    public ResponseEntity<List<BigDecimal>> estimateAllCategoryOrderCost(@RequestBody LocationDto locationDto,
-                                                                         @RequestHeader("Authorization") String token) {
+
+    //endpoint para o cliente ver a localizaçao do
+    @GetMapping ("/getDriverLocation/{driverId}")
+    public ResponseEntity<String> getDriverLocation(@PathVariable Long driverId) {
         try {
-            if (locationDto.getOrigin() == null || locationDto.getDestination() == null) {
-                throw new BusinessException("Origin and destination are mandatory.");
-            }
-
-            if (validateTokenAndGetClientId(token) <= 0) {
-                throw new BusinessException("Client not found.");
-            }
-
-            // Calculates the estimated cost of an order.
-            List<BigDecimal> estimatedCost = orderService.estimateAllCategoryOrderCost(locationDto.getOrigin(), locationDto.getDestination());
-
-            return new ResponseEntity<>(estimatedCost, HttpStatus.OK);
+            String location = driverService.getDriverLocation(driverId);
+            return new ResponseEntity<>(location, HttpStatus.OK);
         } catch (BusinessException e) {
-            // Handles exceptions related to cost estimation.
-            throw new BusinessException("Error estimating order cost: " + e.getMessage());
+            throw new BusinessException("Error getting driver location: " + e.getMessage());
+        }
+    }
+
+    //endpoint para o cliente ver a localizaçao do
+    @GetMapping ("/getTravelInformation/{driverId}/{orderId}")
+    public ResponseEntity<TravelInformationDto> getTravelInformation(@PathVariable Long driverId, @PathVariable Long orderId) {
+        try {
+            TravelInformationDto travelInformation = driverService.getTravelInformation(driverId, orderId);
+            return new ResponseEntity<>(travelInformation, HttpStatus.OK);
+        } catch (BusinessException e) {
+            throw new BusinessException("Error getting travel information: " + e.getMessage());
         }
     }
 
@@ -174,7 +176,7 @@ public class ClientController {
             }
 
             // Creates the order and returns the new order details.
-            Order order = orderService.saveOrder(orderDto, clientId);
+            OrderDto order = orderService.saveOrder(orderDto, clientId);
             return ResponseEntity.status(HttpStatus.CREATED).body(order);
         } catch (BusinessException e) {
             // Handles exceptions during order creation.
@@ -184,11 +186,11 @@ public class ClientController {
 
     // This method retrieves the order history for a client based on their token and the order ID.
     @PostMapping("/assignOrderToDriver/{orderId}")
-    public ResponseEntity<Driver> assignOrderToDriver(@PathVariable Long orderId, @RequestHeader("Authorization") String token) {
+    public ResponseEntity<DriverDto> assignOrderToDriver(@PathVariable Long orderId, @RequestHeader("Authorization") String token) {
         try {
             // validar o token
             validateTokenAndGetClientId(token);
-            Driver driver = orderService.assignOrderToDriver(orderId);
+            DriverDto driver = orderService.assignOrderToDriver(orderId);
             return new ResponseEntity<>(driver, HttpStatus.OK);
         } catch (BusinessException e) {
             throw new BusinessException("Error assign order to driver: " + e.getMessage());
@@ -210,14 +212,14 @@ public class ClientController {
 
     // This method retrieves the order history for a client based on their token.
     @GetMapping("/orderHistory") // Handles GET requests to "/orderHistory".
-    public ResponseEntity<List<Order>> getOrderHistory(
+    public ResponseEntity<List<OrderDto>> getOrderHistory(
             @RequestHeader("Authorization") String token) {
         try {
             // Validates token and retrieves client ID.
             Long clientId = validateTokenAndGetClientId(token);
 
             // Retrieves and returns the client's order history.
-            List<Order> orderHistory = orderService.getClientOrderHistory(clientId);
+            List<OrderDto> orderHistory = clientService.getClientOrderHistory(clientId);
             return new ResponseEntity<>(orderHistory, HttpStatus.OK);
         } catch (BusinessException e) {
             // Handles exceptions during retrieval of order history.

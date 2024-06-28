@@ -85,7 +85,6 @@ class _LoginScreenState extends State<LoginScreen> {
             _buildTextField(_passwordController, 'Password', Icons.lock, isObscure: true),
             const SizedBox(height: 24),
             _buildLoginButton(context),
-            _buildRecuperatioButton(context),
             _buildRegisterButton(context),
           ],
         ),
@@ -125,22 +124,16 @@ class _LoginScreenState extends State<LoginScreen> {
             ? const CircularProgressIndicator(
           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
         )
-            : const Text('Entrar'),
+            : const Text('Enter'),
       ),
     );
   }
 
   Widget _buildRegisterButton(BuildContext context) {
     return TextButton(
-      onPressed: () => Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => const RegisterScreen())),
-      child: const Text('Registe-se aqui!', style: TextStyle(color: Colors.black54)),
+      onPressed: () => Navigator.of(context).push(MaterialPageRoute(builder: (_) => const RegisterScreen())),
+      child: const Text('Do not have an account? Register here.', style: TextStyle(color: Colors.black54)),
     );
   }
 
-  Widget _buildRecuperatioButton(BuildContext context) {
-    return TextButton(
-      onPressed: () => Navigator.of(context).pushNamed('/register'),
-      child: const Text('Esqueceu a palavra passe?', style: TextStyle(color: Colors.black54)),
-    );
-  }
 }

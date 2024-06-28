@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 import 'package:provider/provider.dart';
+import 'package:teste_2/views/screens/auth/register_screen.dart';
 import 'package:teste_2/views/screens/home/home_screen.dart';
 import '../../../api/auth_api.dart';
 
 class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
   @override
   _LoginScreenState createState() => _LoginScreenState();
 }
@@ -30,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (token != null) {
       Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => HomeScreen()),
+        MaterialPageRoute(builder: (context) => const HomeScreen()),
             (Route<dynamic> route) => false,
       );
     } else {
@@ -43,11 +46,11 @@ class _LoginScreenState extends State<LoginScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: Text('Error'),
-          content: Text('Failed to login. Please try again.'),
+          title: const Text('Error'),
+          content: const Text('Failed to login. Please try again.'),
           actions: [
             TextButton(
-              child: Text('OK'),
+              child: const Text('OK'),
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -71,12 +74,12 @@ class _LoginScreenState extends State<LoginScreen> {
           children: [
             SizedBox(height: MediaQuery.of(context).size.height * 0.2),
             SvgPicture.asset('assets/images/logo-svg.svg', height: 150),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             _buildTextField(_emailController, 'E-mail', Icons.email),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             _buildTextField(_passwordController, 'Password', Icons.lock, isObscure: true),
-            SizedBox(height: 24),
-            _isLoading ? CircularProgressIndicator() : _buildLoginButton(context),
+            const SizedBox(height: 24),
+            _isLoading ? const CircularProgressIndicator() : _buildLoginButton(context),
             _buildRegisterButton(context),
           ],
         ),
@@ -107,17 +110,22 @@ class _LoginScreenState extends State<LoginScreen> {
           foregroundColor: Colors.white,
           backgroundColor: Colors.black,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-          padding: EdgeInsets.symmetric(vertical: 16),
+          padding: const EdgeInsets.symmetric(vertical: 16),
         ),
-        child: Text('Sign in'),
+        child: const Text('Sign in'),
       ),
     );
   }
 
   Widget _buildRegisterButton(BuildContext context) {
     return TextButton(
-      onPressed: () => Navigator.of(context).pushNamed('/register'),
-      child: Text('Não tem uma conta? Registe-se aqui.', style: TextStyle(color: Colors.black54)),
+      onPressed: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+        );
+      },
+      child: const Text('Do not have an account? Register here.', style: TextStyle(color: Colors.black54)),
     );
   }
 }
